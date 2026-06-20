@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { broadcastMultiplier, broadcastRoundStart, broadcastCashout } from "../lib/socket";
+import { Decimal } from "@prisma/client/runtime/library";
 
 // Provably fair crash point calculation
 function generateCrashPoint(): number {
@@ -37,7 +38,7 @@ export async function placeBet(userId: string, amount: number) {
       walletId: wallet.id,
       type: "DEBIT",
       reason: "BET",
-      amount: amount as any,
+      amount: new Decimal(amount),
       balanceAfter: newBalance,
       description: "Aviator bet",
     },
@@ -48,7 +49,7 @@ export async function placeBet(userId: string, amount: number) {
     data: {
       userId,
       roundId: currentRound?.id || "",
-      stake: amount as any,
+      stake: new Decimal(amount),
       status: "active",
     },
   });
@@ -89,7 +90,7 @@ export async function cashout(userId: string, betId: string, multiplier: number)
         walletId: wallet.id,
         type: "CREDIT",
         reason: "WIN",
-        amount: winAmount as any,
+        amount: winAmount,
         balanceAfter: newBalance,
         description: "Aviator cashout",
       },

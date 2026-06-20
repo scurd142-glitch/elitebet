@@ -184,6 +184,17 @@ export const api = {
       { method: "POST", body: JSON.stringify({ ...payload, type: "DEPOSIT" }) }
     ),
 
+  // Aviator
+  placeAviatorBet: (payload: { amount: number }) =>
+    request<{ bet: any }>("/api/aviator/bet", { method: "POST", body: JSON.stringify(payload) }),
+
+  cashoutAviator: (payload: { betId: string; multiplier: number }) =>
+    request<{ winAmount: number }>("/api/aviator/cashout", { method: "POST", body: JSON.stringify(payload) }),
+
+  getAviatorHistory: () => request<{ history: any[] }>("/api/aviator/history"),
+
+  getFakePlayers: () => request<{ players: any[] }>("/api/aviator/fake-players"),
+
   getReferrals: () => request<ReferralData>("/api/wallet/referrals"),
 
   getMyWithdrawals: () =>

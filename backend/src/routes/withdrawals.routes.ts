@@ -9,23 +9,23 @@ export const withdrawalsRouter = Router();
 withdrawalsRouter.use(authMiddleware);
 
 // Withdrawals disabled - return error message
-withdrawalsRouter.get("/mine", asyncHandler((_req, res) => {
+withdrawalsRouter.get("/mine", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
-withdrawalsRouter.post("/", asyncHandler((_req, res) => {
+withdrawalsRouter.post("/", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
 
 // Admin routes also disabled
-withdrawalsRouter.get("/admin", asyncHandler((_req, res) => {
+withdrawalsRouter.get("/admin", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
-withdrawalsRouter.patch("/admin/:id", asyncHandler((_req, res) => {
+withdrawalsRouter.patch("/admin/:id", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
-withdrawalsRouter.post("/admin/:id/paid", asyncHandler((_req, res) => {
+withdrawalsRouter.post("/admin/:id/paid", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
-withdrawalsRouter.post("/admin/:id/retry-payout", asyncHandler((_req, res) => {
+withdrawalsRouter.post("/admin/:id/retry-payout", asyncHandler(async (_req, res) => {
   res.status(403).json({ success: false, error: "Withdrawals are not available on EliteBet" });
 }));
