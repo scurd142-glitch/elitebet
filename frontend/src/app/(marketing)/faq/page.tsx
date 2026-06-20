@@ -4,16 +4,44 @@ import { SITE } from "@/lib/constants";
 
 const FAQ_ITEMS = [
   {
-    q: "How do I deposit on EliteBet?",
-    a: "Tap Deposit or visit Wallet. Enter an amount (minimum KES 50) and pay via M-Pesa through Paystack. Your balance updates after confirmation.",
+    q: "How do I deposit money into my EliteBet account?",
+    a: "You can deposit money via M-Pesa. Go to the Wallet page, click on Deposit, enter the amount, and follow the M-Pesa payment instructions. Deposits are usually processed instantly.",
   },
   {
-    q: "Can I withdraw my balance?",
-    a: "No. Withdrawals are not available. Deposits fund simulation betting only — they have no real cash-out value.",
+    q: "Is EliteBet a real betting platform?",
+    a: "No, EliteBet is a simulation betting platform for entertainment purposes only. All balances are virtual and cannot be withdrawn. This is a play-to-learn platform.",
   },
   {
-    q: "Is EliteBet real money gambling?",
-    a: "EliteBet is a simulation platform. Deposits go to the platform via Paystack; your displayed balance is used for entertainment betting only.",
+    q: "How does Aviator crash game work?",
+    a: "Aviator is a crash game where a multiplier starts at 1.00x and increases. You can cash out at any time before the plane crashes. If you cash out before the crash, you win your stake multiplied by the current multiplier. If the plane crashes before you cash out, you lose your bet.",
+  },
+  {
+    q: "How do I place a sports bet?",
+    a: "Go to the Sports page, select the matches you want to bet on, choose your prediction (Home Win, Draw, or Away Win), and add them to your betslip. Enter your stake and place your bet.",
+  },
+  {
+    q: "What are the minimum and maximum bet amounts?",
+    a: "The minimum bet amount is KES 10. Maximum bet amounts vary by game and sport. Check each game for specific limits.",
+  },
+  {
+    q: "How are odds calculated?",
+    a: "Odds are calculated based on the probability of outcomes. Higher odds mean lower probability but higher potential winnings. Our odds are competitive with industry standards.",
+  },
+  {
+    q: "Can I cancel a bet after placing it?",
+    a: "No, once a bet is placed, it cannot be cancelled. Please review your selections carefully before confirming your bet.",
+  },
+  {
+    q: "How do I view my bet history?",
+    a: "Go to the My Bets page to view all your past and active bets. You can filter by status (All, Active, Settled) to find specific bets.",
+  },
+  {
+    q: "Is my personal information secure?",
+    a: "Yes, we use industry-standard encryption to protect your personal information. We do not share your data with third parties without your consent.",
+  },
+  {
+    q: "What should I do if I have a problem?",
+    a: "If you encounter any issues, please contact our support team through the Contact page or create a support ticket. We'll respond within 24 hours.",
   },
 ];
 
