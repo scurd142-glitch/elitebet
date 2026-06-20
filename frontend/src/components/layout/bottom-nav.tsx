@@ -5,13 +5,20 @@ import { usePathname } from "next/navigation";
 import { Home, Radio, Ticket, Dices, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isCenter?: boolean;
+};
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/inplay", label: "Inplay", icon: Radio },
   { href: "/betslip", label: "Betslip", icon: Ticket, isCenter: true },
   { href: "/casino", label: "Casino", icon: Dices },
   { href: "/my-bets", label: "My Bets", icon: ClipboardList },
-] as const;
+];
 
 export function BottomNav({ betslipCount = 0 }: { betslipCount?: number }) {
   const pathname = usePathname();

@@ -39,3 +39,10 @@ export const FOOTER_LINKS = {
     { href: "/register", label: "Register" },
   ],
 } as const;
+
+export const NAV_LINKS = [
+  { href: "/sports", label: "Sports" },
+  { href: "/inplay", label: "Live" },
+  { href: "/casino", label: "Casino" },
+  { href: "/promotions", label: "Promotions" },
+] as const;

@@ -162,6 +162,8 @@ model User {
   twoFactorEnabled Boolean @default(false)
   isVerified    Boolean   @default(false)
   promoCode     String?
+  promoCodeUsed String?
+  onboardingComplete Boolean @default(false)
 
   referralCode String @unique
   referredById String?
@@ -188,6 +190,11 @@ model User {
 
   refreshTokens RefreshToken[]
   otpCodes      OtpVerification[]
+
+  bets           Bet[]
+  aviatorBets    AviatorBet[]
+  sessions       Session[]
+  leaderboardEntries Leaderboard[]
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -424,4 +431,94 @@ model Faq {
   updatedAt  DateTime @updatedAt
 
   @@index([published, category])
+}
+
+// -----------------------------------------------------------------------------
+// Betting & gaming
+// -----------------------------------------------------------------------------
+
+model Bet {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String   @default("single") // single, accumulator
+  selections    Json     // Array of {matchId, selection, odds}
+  stake         Decimal  @db.Decimal(18, 2)
+  totalOdds     Decimal  @db.Decimal(18, 2)
+  potentialWin  Decimal  @db.Decimal(18, 2)
+  actualWin     Decimal? @db.Decimal(18, 2)
+  status        String   @default("pending") // pending, won, lost, cancelled
+  createdAt     DateTime @default(now())
+  resolvedAt    DateTime?
+
+  @@index([userId, status])
+  @@index([createdAt])
+}
+
+model AviatorRound {
+  id          String       @id @default(cuid())
+  crashPoint  Float
+  createdAt   DateTime     @default(now())
+  bets        AviatorBet[]
+
+  @@index([createdAt])
+}
+
+model AviatorBet {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roundId          String
+  round            AviatorRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  stake            Decimal  @db.Decimal(18, 2)
+  cashoutMultiplier Float?
+  winAmount        Decimal? @db.Decimal(18, 2)
+  status           String   @default("active") // active, cashed_out, crashed
+  createdAt        DateTime @default(now())
+
+  @@index([userId, status])
+  @@index([roundId])
+}
+
+model PromoCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  bonusAmount Decimal  @db.Decimal(18, 2)
+  maxUses     Int      @default(100)
+  usedCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loginAt    DateTime @default(now())
+  device     String?
+  browser    String?
+  ipAddress  String?
+
+  @@index([userId])
+  @@index([loginAt])
+}
+
+model Leaderboard {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart   DateTime
+  totalWon    Decimal  @db.Decimal(18, 2) @default(0)
+  gamesPlayed Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+  @@index([weekStart])
+  @@index([totalWon])
 }

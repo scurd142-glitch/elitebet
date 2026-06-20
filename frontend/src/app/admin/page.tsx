@@ -20,11 +20,6 @@ export default function AdminDashboardPage() {
     });
   }, []);
 
-  async function seedCategories() {
-    await api.seedCategories();
-    alert("Job categories seeded");
-  }
-
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -32,9 +27,6 @@ export default function AdminDashboardPage() {
           <h1 className="font-heading text-3xl font-bold heading-gradient">Admin analytics</h1>
           <p className="text-sm text-muted-foreground font-body">Platform overview</p>
         </div>
-        <Button size="sm" variant="outline" className="border-[rgba(255,215,0,0.35)] text-[#FFD700] hover:bg-[rgba(255,215,0,0.14)]" onClick={seedCategories}>
-          Seed job categories
-        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,11 +34,9 @@ export default function AdminDashboardPage() {
           { label: "Total users", key: "totalUsers", variant: "stat-card-gold" },
           { label: "New this week", key: "newUsersWeek", variant: "stat-card-green" },
           { label: "Banned", key: "bannedUsers", variant: "stat-card-red" },
-          { label: "Open jobs", key: "openJobs", variant: "stat-card-purple" },
-          { label: "Pending withdrawals", key: "pendingWithdrawals", variant: "stat-card-gold" },
-          { label: "Paid withdrawals", key: "totalPaidOut", variant: "stat-card-green" },
-          { label: "Pending activations", key: "pendingActivations", variant: "stat-card-purple" },
-          { label: "Inactive writers", key: "inactiveWriters", variant: "stat-card-red" },
+          { label: "Total bets", key: "totalBets", variant: "stat-card-purple" },
+          { label: "Active bets", key: "activeBets", variant: "stat-card-gold" },
+          { label: "Total wagered", key: "totalWagered", variant: "stat-card-green" },
         ].map((s) => (
           <div
             key={s.key}
