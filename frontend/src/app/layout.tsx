@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "react-hot-toast";
 import { SITE } from "@/lib/constants";
+import { OnboardingWrapper } from "@/components/providers/onboarding-provider";
 
 const bodyFont = Inter({
   variable: "--font-body",
@@ -101,7 +102,9 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
-            <AppShell>{children}</AppShell>
+            <OnboardingWrapper>
+              <AppShell>{children}</AppShell>
+            </OnboardingWrapper>
           </AuthProvider>
         </ThemeProvider>
         <Toaster
