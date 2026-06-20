@@ -1,0 +1,87 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { pinoHttp } from "pino-http";
+import { pino } from "pino";
+import type { Env } from "./config/env";
+import paymentsRouter from "./routes/payments";
+import { authRouter } from "./routes/auth.routes";
+import jobsRouter from "./routes/jobs";
+import walletRouter from "./routes/wallet";
+import referralsRouter from "./routes/referrals";
+import adminRouter from "./routes/admin";
+import notificationsRouter from "./routes/notifications";
+import invoicesRouter from "./routes/invoices";
+import resourcesRouter from "./routes/resources";
+import testsRouter from "./routes/tests";
+import { activationRouter } from "./routes/activation.routes";
+import { userRouter } from "./routes/user.routes";
+import { contactRouter } from "./routes/contact.routes";
+import { ticketsRouter } from "./routes/tickets.routes";
+import { withdrawalsRouter } from "./routes/withdrawals.routes";
+import { prisma } from "./lib/prisma";
+
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? "info",
+});
+
+export function createApp(env: Env) {
+  const app = express();
+
+  app.disable("x-powered-by");
+  app.use(helmet());
+  app.use(
+    cors({
+      origin: env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? true,
+      credentials: true,
+    }),
+  );
+  app.use(express.json({
+    limit: "1mb",
+    verify: (req, _res, buf) => {
+      try {
+        (req as any).rawBody = buf.toString();
+      } catch (e) {
+        (req as any).rawBody = undefined;
+      }
+    },
+  }));
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: true,
+    }),
+  );
+
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", service: "writersnite-api", timestamp: new Date().toISOString() });
+  });
+
+  app.get("/health/db", async (_req, res) => {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", database: "connected" });
+  });
+
+  // Mount API routers
+  // Payments router will handle Paystack webhook which relies on rawBody captured above
+  app.use("/api/payments", paymentsRouter);
+  app.use("/api/auth", authRouter);
+  app.use("/api/jobs", jobsRouter);
+  app.use("/api/wallet", walletRouter);
+  app.use("/api/referrals", referralsRouter);
+  app.use("/api/admin", adminRouter);
+  app.use("/api/notifications", notificationsRouter);
+  app.use("/api/invoices", invoicesRouter);
+  app.use("/api/resources", resourcesRouter);
+  app.use("/api/tests", testsRouter);
+  app.use("/api/activation", activationRouter);
+  app.use("/api/user", userRouter);
+  app.use("/api/contact", contactRouter);
+  app.use("/api/tickets", ticketsRouter);
+  app.use("/api/withdrawals", withdrawalsRouter);
+  app.use((_req, res) => {
+    res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Route not found" } });
+  });
+
+  return app;
+}

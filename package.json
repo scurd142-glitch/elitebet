@@ -1,0 +1,29 @@
+{
+  "name": "writersnite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WRITERSNITE — enterprise writing marketplace by SCURDTECHS PRODUCTION LIMITED",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "postinstall": "npm run build --workspace=@writersnite/shared",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "db:generate": "npm run db:generate --workspace=backend",
+    "db:migrate": "npm run db:migrate --workspace=backend",
+    "db:push": "npm run db:push --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend",
+    "lint": "npm run lint --workspace=frontend"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

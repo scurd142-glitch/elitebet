@@ -1,0 +1,730 @@
+// WRITERSNITE — PostgreSQL schema (SCURDTECHS PRODUCTION LIMITED)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+enum AccountStatus {
+  INACTIVE
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum UserVerificationTier {
+  NONE
+  BASIC
+  PREMIUM
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYSTACK
+  PAYPAL
+  MANUAL
+}
+
+enum PaymentType {
+  ACCOUNT_ACTIVATION
+  SUBSCRIPTION
+  JOB_COMMISSION
+  FEATURED_JOB
+  ADVERTISING
+  SPONSORED_LISTING
+  FREELANCER_UPGRADE
+  PREMIUM_BADGE
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum WalletTransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum WalletTransactionReason {
+  JOB_PAYOUT
+  REFERRAL_BONUS
+  WITHDRAWAL
+  ACTIVATION_FEE
+  PLATFORM_FEE
+  ADJUSTMENT
+  BONUS
+  MILESTONE
+  DAILY_REWARD
+  OTHER
+}
+
+enum JobCategory {
+  ARTICLE_WRITING
+  ACADEMIC_WRITING
+  COPYWRITING
+  TRANSCRIPTION
+  TRANSLATION
+  PROOFREADING
+  BLOGGING
+  SOCIAL_MEDIA_CAPTIONS
+  PRODUCT_DESCRIPTIONS
+  AI_PROMPT_EDITING
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION_REQUESTED
+  COMPLETED
+  CANCELLED
+}
+
+enum JobSubmissionStatus {
+  PENDING
+  APPROVED
+  REVISION_REQUESTED
+  REJECTED
+}
+
+enum WithdrawalMethod {
+  PAYSTACK
+  PAYPAL
+  BANK_TRANSFER
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+  FAILED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+}
+
+enum NotificationType {
+  SYSTEM
+  PAYMENT
+  JOB
+  WITHDRAWAL
+  REFERRAL
+  SECURITY
+  ACHIEVEMENT
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  LOGIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum WriterRank {
+  BEGINNER
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  ELITE_WRITER
+}
+
+enum AdminLogAction {
+  USER_BAN
+  USER_UNBAN
+  USER_ACTIVATE
+  USER_DEACTIVATE
+  WITHDRAWAL_APPROVE
+  WITHDRAWAL_REJECT
+  JOB_CREATE
+  JOB_UPDATE
+  JOB_DELETE
+  PAYMENT_VERIFY
+  CONTENT_MODERATION
+  SYSTEM_CONFIG
+  OTHER
+}
+
+// -----------------------------------------------------------------------------
+// Auth & users
+// -----------------------------------------------------------------------------
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users UserRole[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String
+  fullName      String
+  phone         String?
+  country       String?
+  accountStatus AccountStatus @default(INACTIVE)
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  verificationTier UserVerificationTier @default(NONE)
+  twoFactorEnabled Boolean @default(false)
+
+  referralCode String @unique
+  referredById String?
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[] @relation("UserReferrals")
+
+  roles UserRole[]
+
+  wallet            Wallet?
+  payments          Payment[]
+  walletTransactions WalletTransaction[] @relation("WalletTxActor")
+
+  jobsCreated Job[] @relation("JobCreator")
+  jobsTaken   Job[] @relation("JobAssignee")
+  submissions JobSubmission[]
+
+  referralsMade Referral[] @relation("ReferrerUser")
+  referredAs    Referral[] @relation("ReferredUser")
+
+  withdrawals Withdrawal[]
+
+  notifications Notification[]
+  invoices      Invoice[]
+  testResults   TestResult[]
+
+  userAchievements UserAchievement[]
+  gamification     UserGamification?
+
+  adminLogsTarget AdminLog[] @relation("AdminLogTargetUser")
+  adminLogsActor  AdminLog[] @relation("AdminLogActor")
+
+  supportTickets SupportTicket[]
+
+  blogPosts BlogPost[]
+
+  refreshTokens RefreshToken[]
+  otpCodes      OtpVerification[]
+
+  subscriptions Subscription[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([email])
+  @@index([username])
+  @@index([accountStatus])
+  @@index([referredById])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  userAgent  String?
+  ipAddress  String?
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OtpVerification {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email      String?
+  phone      String?
+  purpose    OtpPurpose
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, purpose])
+  @@index([phone, purpose])
+  @@index([userId])
+}
+
+// -----------------------------------------------------------------------------
+// Payments & wallet
+// -----------------------------------------------------------------------------
+
+model Payment {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Decimal         @db.Decimal(18, 2)
+  currency      String          @default("USD")
+  provider      PaymentProvider
+  type          PaymentType
+  status        PaymentStatus   @default(PENDING)
+  externalRef   String?
+  idempotencyKey String?        @unique
+  metadata      Json?
+  completedAt   DateTime?
+  failedReason  String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  walletTransactions WalletTransaction[]
+
+  @@index([userId, status])
+  @@index([provider, externalRef])
+  @@index([createdAt])
+}
+
+model Wallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance        Decimal  @default(0) @db.Decimal(18, 2)
+  pendingBalance Decimal  @default(0) @db.Decimal(18, 2)
+  currency       String   @default("USD")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id            String                  @id @default(cuid())
+  walletId      String
+  wallet        Wallet                  @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type          WalletTransactionType
+  reason        WalletTransactionReason
+  amount        Decimal                 @db.Decimal(18, 2)
+  balanceAfter  Decimal                 @db.Decimal(18, 2)
+  paymentId     String?
+  payment       Payment?                @relation(fields: [paymentId], references: [id])
+  referenceType String?
+  referenceId   String?
+  description   String?
+  metadata      Json?
+  actorUserId   String?
+  actorUser     User?                   @relation("WalletTxActor", fields: [actorUserId], references: [id])
+  createdAt     DateTime                @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([referenceType, referenceId])
+}
+
+model Withdrawal {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Decimal           @db.Decimal(18, 2)
+  currency      String            @default("USD")
+  method        WithdrawalMethod
+  status        WithdrawalStatus  @default(PENDING)
+  destination   String?
+  adminNotes    String?
+  processedById String?
+  processedAt   DateTime?
+  failureReason String?
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planKey              String
+  status               SubscriptionStatus @default(ACTIVE)
+  provider             PaymentProvider
+  externalSubscription String?            @unique
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  metadata             Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([userId, status])
+}
+
+// -----------------------------------------------------------------------------
+// Jobs
+// -----------------------------------------------------------------------------
+
+model Job {
+  id              String      @id @default(cuid())
+  title           String
+  description     String      @db.Text
+  category        JobCategory
+  budget          Decimal     @db.Decimal(18, 2)
+  currency        String      @default("USD")
+  status          JobStatus   @default(OPEN)
+  deadline        DateTime?
+  featured        Boolean     @default(false)
+  sponsored       Boolean     @default(false)
+  commissionRate  Decimal?    @db.Decimal(5, 4)
+
+  createdById String
+  createdBy   User   @relation("JobCreator", fields: [createdById], references: [id])
+
+  assignedUserId String?
+  assignedUser   User?   @relation("JobAssignee", fields: [assignedUserId], references: [id])
+
+  submissions JobSubmission[]
+  invoices    Invoice[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status, category])
+  @@index([assignedUserId])
+  @@index([createdById])
+  @@index([deadline])
+  @@index([featured])
+  @@index([deletedAt])
+}
+
+model JobSubmission {
+  id             String               @id @default(cuid())
+  jobId          String
+  job            Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         JobSubmissionStatus  @default(PENDING)
+  contentUrl     String?
+  attachmentUrls String[]             @default([])
+  notes          String?              @db.Text
+  revisionNotes  String?              @db.Text
+  submittedAt    DateTime             @default(now())
+  reviewedAt     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([jobId])
+  @@index([userId])
+  @@index([status])
+}
+
+// -----------------------------------------------------------------------------
+// Referrals
+// -----------------------------------------------------------------------------
+
+model Referral {
+  id               String   @id @default(cuid())
+  referrerId       String
+  referrer         User     @relation("ReferrerUser", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUserId   String   @unique
+  referredUser     User     @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  level            Int      @default(1)
+  commissionEarned Decimal @default(0) @db.Decimal(18, 2)
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([referrerId])
+}
+
+// -----------------------------------------------------------------------------
+// Notifications
+// -----------------------------------------------------------------------------
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String               @db.Text
+  type      NotificationType
+  channel   NotificationChannel  @default(IN_APP)
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId         String?
+  job           Job?     @relation(fields: [jobId], references: [id])
+  amount        Decimal  @db.Decimal(18, 2)
+  status        String   @default("UNPAID")
+  invoiceNumber String   @unique
+  createdAt     DateTime @default(now())
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  content     String?  @db.Text
+  category    String?
+  isPremium   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model WritingTest {
+  id        String   @id @default(cuid())
+  title     String
+  questions Json
+  passScore Int      @default(70)
+  createdAt DateTime @default(now())
+
+  results TestResult[]
+}
+
+model TestResult {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId    String
+  test      WritingTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  score     Int
+  passed    Boolean
+  takenAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([testId])
+}
+
+// -----------------------------------------------------------------------------
+// Gamification
+// -----------------------------------------------------------------------------
+
+model Achievement {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String   @db.Text
+  iconKey     String?
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users UserAchievement[]
+}
+
+model UserAchievement {
+  userId        String
+  achievementId String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+  metadata      Json?
+
+  @@id([userId, achievementId])
+  @@index([achievementId])
+}
+
+model UserGamification {
+  userId       String     @id
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rank         WriterRank @default(BEGINNER)
+  xpPoints     Int        @default(0)
+  levelNumeric Int        @default(1)
+  streakDays   Int        @default(0)
+  lastLoginAt  DateTime?
+  updatedAt    DateTime   @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// Admin & audit
+// -----------------------------------------------------------------------------
+
+model AdminLog {
+  id          String         @id @default(cuid())
+  actorId     String
+  actor       User           @relation("AdminLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action      AdminLogAction
+  targetType  String?
+  targetId    String?
+  targetUserId String?
+  targetUser  User?          @relation("AdminLogTargetUser", fields: [targetUserId], references: [id])
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+// -----------------------------------------------------------------------------
+// Support & content
+// -----------------------------------------------------------------------------
+
+model SupportTicket {
+  id        String                @id @default(cuid())
+  userId    String?
+  user      User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  subject   String
+  message   String                @db.Text
+  status    SupportTicketStatus   @default(OPEN)
+  priority  SupportTicketPriority @default(NORMAL)
+  metadata  Json?
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([status, priority])
+  @@index([userId])
+}
+
+model Testimonial {
+  id         String   @id @default(cuid())
+  authorName String
+  roleTitle  String?
+  company    String?
+  content    String   @db.Text
+  rating     Int?
+  approved   Boolean  @default(false)
+  featured   Boolean  @default(false)
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([approved, featured])
+}
+
+model Faq {
+  id         String   @id @default(cuid())
+  question   String
+  answer     String   @db.Text
+  category   String?
+  sortOrder  Int      @default(0)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([published, category])
+}
+
+model BlogCategory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  posts       BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogTag {
+  id    String         @id @default(cuid())
+  name  String
+  slug  String         @unique
+  posts BlogPostTag[]
+
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  excerpt         String?  @db.Text
+  content         String   @db.Text
+  featuredImage   String?
+  seoTitle        String?
+  seoDescription  String?  @db.Text
+  published       Boolean  @default(false)
+  featured        Boolean  @default(false)
+  publishedAt     DateTime?
+
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  categoryId String?
+  category   BlogCategory? @relation(fields: [categoryId], references: [id])
+
+  tags BlogPostTag[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([categoryId])
+  @@index([deletedAt])
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}

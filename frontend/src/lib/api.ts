@@ -1,0 +1,375 @@
+import { getAuthToken } from "@/lib/auth-storage";
+import type {
+  PublicUser,
+  DashboardData,
+  JobItem,
+  JobAssignmentItem,
+  WalletData,
+  ReferralData,
+  WithdrawalItem,
+  AnnouncementItem,
+  NotificationItem,
+  ActivityItem,
+  ContactMessageItem,
+  SupportTicketItem,
+  ActivationConfig,
+  ActivationPaymentItem,
+} from "@/types/user";
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
+
+type ApiResult<T> = {
+  success: boolean;
+  message?: string;
+  data?: T;
+  errors?: { field: string; message: string }[];
+};
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<ApiResult<T>> {
+  const token = getAuthToken();
+  const headers: HeadersInit = {
+    ...(options.headers ?? {}),
+  };
+
+  // Only set Content-Type if not FormData (for file uploads)
+  if (!(options.body instanceof FormData)) {
+    (headers as Record<string, string>)["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers,
+    });
+
+    const body = (await res.json()) as ApiResult<T>;
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: body.message ?? "Request failed",
+        errors: body.errors,
+      };
+    }
+
+    return body;
+  } catch {
+    return { success: false, message: "Network error — is the API running?" };
+  }
+}
+
+export const api = {
+  register: (payload: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    country?: string;
+    password: string;
+    referralCode?: string;
+  }) =>
+    request<{ user: PublicUser; token: string; expiresIn: string }>(
+      "/api/auth/register",
+      { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  login: (payload: {
+    identifier: string;
+    password: string;
+    remember?: boolean;
+  }) =>
+    request<{ user: PublicUser; token: string; expiresIn: string }>(
+      "/api/auth/login",
+      { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  logout: () => request<null>("/api/auth/logout", { method: "POST" }),
+
+  me: () => request<{ user: PublicUser }>("/api/auth/me"),
+
+  getActivationConfig: () =>
+    request<ActivationConfig>("/api/activation/config"),
+
+  getActivationStatus: () =>
+    request<{
+      isActivated: boolean;
+      activatedAt: string | null;
+      latestPayment: {
+        id: string;
+        amount: number;
+        status: string;
+        createdAt: string;
+      } | null;
+    }>("/api/activation/status"),
+
+  initiateActivationPayment: () =>
+    request<{ authorization_url: string; reference: string; amount: number }>(
+      "/api/activation/pay",
+      { method: "POST" }
+    ),
+
+  refreshActivationUser: () =>
+    request<{ user: PublicUser }>("/api/activation/me"),
+
+  getDashboard: () => request<DashboardData>("/api/user/dashboard"),
+
+  updateProfile: (payload: {
+    fullName?: string;
+    phone?: string;
+    country?: string;
+  }) =>
+    request<{ user: PublicUser }>("/api/user/profile", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  changePassword: (payload: {
+    currentPassword: string;
+    newPassword: string;
+  }) =>
+    request<null>("/api/user/change-password", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getNotifications: () =>
+    request<{ notifications: NotificationItem[] }>("/api/user/notifications"),
+
+  markNotificationRead: (id: string) =>
+    request<null>(`/api/user/notifications/${id}/read`, { method: "PATCH" }),
+
+  markAllNotificationsRead: () =>
+    request<null>("/api/user/notifications/read-all", { method: "POST" }),
+
+  getActivity: () =>
+    request<{ activities: ActivityItem[] }>("/api/user/activity"),
+
+  submitContact: (payload: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }) =>
+    request<{ id: string }>("/api/contact", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getMyTickets: () =>
+    request<{ tickets: SupportTicketItem[] }>("/api/tickets"),
+
+  getMyTicket: (id: string) =>
+    request<{ ticket: SupportTicketItem }>(`/api/tickets/${id}`),
+
+  createTicket: (payload: { subject: string; message: string }) =>
+    request<{ ticket: SupportTicketItem }>("/api/tickets", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  replyToTicket: (id: string, body: string) =>
+    request<{ ticket: SupportTicketItem }>(`/api/tickets/${id}/reply`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+
+  getAnnouncements: () =>
+    request<{ announcements: AnnouncementItem[] }>("/api/user/announcements"),
+
+  getJobCategories: () =>
+    request<{ categories: { id: string; name: string; slug: string }[] }>(
+      "/api/jobs/categories"
+    ),
+
+  getOpenJobs: (categoryId?: string) =>
+    request<{ jobs: JobItem[] }>(
+      `/api/jobs${categoryId ? `?categoryId=${categoryId}` : ""}`
+    ),
+
+  getMyJobs: () =>
+    request<{ assignments: JobAssignmentItem[] }>("/api/jobs/mine"),
+
+  getJob: (id: string) => request<{ job: JobItem }>(`/api/jobs/${id}`),
+
+  acceptJob: (id: string) =>
+    request<{ assignmentId: string }>(`/api/jobs/${id}/accept`, {
+      method: "POST",
+    }),
+
+  submitJob: (id: string, submissionText: string) =>
+    request<null>(`/api/jobs/${id}/submit`, {
+      method: "POST",
+      body: JSON.stringify({ submissionText }),
+    }),
+
+  getWallet: () => request<WalletData>("/api/wallet"),
+
+  getReferrals: () => request<ReferralData>("/api/wallet/referrals"),
+
+  getMyWithdrawals: () =>
+    request<{ withdrawals: WithdrawalItem[] }>("/api/withdrawals/mine"),
+
+  createWithdrawal: (payload: { amount: number; phone?: string; destination?: string }) =>
+    request<{ withdrawal: { id: string; amount: number; status: string } }>(
+      "/api/withdrawals",
+      { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  getPublicContent: () =>
+    request<{ content: Record<string, string> }>("/api/admin/content/public"),
+
+  // Admin
+  getAdminAnalytics: () =>
+    request<{
+      stats: Record<string, number>;
+      recentUsers: {
+        id: string;
+        fullName: string;
+        username: string;
+        email: string;
+        isBanned: boolean;
+        createdAt: string;
+      }[];
+    }>("/api/admin/analytics"),
+
+  getAdminUsers: (search?: string) =>
+    request<{ users: (PublicUser & { isBanned: boolean })[] }>(
+      `/api/admin/users${search ? `?search=${encodeURIComponent(search)}` : ""}`
+    ),
+
+  toggleBanUser: (id: string) =>
+    request<{ isBanned: boolean }>(`/api/admin/users/${id}/ban`, {
+      method: "PATCH",
+    }),
+
+  activateUserManually: (id: string) =>
+    request<null>(`/api/admin/users/${id}/activate`, { method: "POST" }),
+
+  getAdminActivations: (status?: string) =>
+    request<{ payments: ActivationPaymentItem[] }>(
+      `/api/admin/activations${status ? `?status=${status}` : ""}`
+    ),
+
+  processActivation: (
+    id: string,
+    payload: { status: "APPROVED" | "REJECTED"; adminNote?: string }
+  ) =>
+    request<null>(`/api/admin/activations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  getAdminAnnouncements: () =>
+    request<{ announcements: AnnouncementItem[] }>("/api/admin/announcements"),
+
+  createAnnouncement: (payload: {
+    title: string;
+    body: string;
+    isActive?: boolean;
+  }) =>
+    request<{ announcement: AnnouncementItem }>("/api/admin/announcements", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateAnnouncement: (
+    id: string,
+    payload: { title?: string; body?: string; isActive?: boolean }
+  ) =>
+    request<{ announcement: AnnouncementItem }>(
+      `/api/admin/announcements/${id}`,
+      { method: "PATCH", body: JSON.stringify(payload) }
+    ),
+
+  deleteAnnouncement: (id: string) =>
+    request<null>(`/api/admin/announcements/${id}`, { method: "DELETE" }),
+
+  getAdminCategories: () =>
+    request<{
+      categories: {
+        id: string;
+        name: string;
+        slug: string;
+        description: string | null;
+      }[];
+    }>("/api/admin/categories"),
+
+  createCategory: (payload: { name: string; description?: string }) =>
+    request<{ category: { id: string; name: string; slug: string } }>(
+      "/api/admin/categories",
+      { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  getContactMessages: () =>
+    request<{ messages: ContactMessageItem[] }>("/api/contact"),
+
+  markContactRead: (id: string) =>
+    request<null>(`/api/contact/${id}/read`, { method: "PATCH" }),
+
+  getAdminTickets: () =>
+    request<{ tickets: SupportTicketItem[] }>("/api/tickets/admin"),
+
+  getAdminTicket: (id: string) =>
+    request<{ ticket: SupportTicketItem }>(`/api/tickets/admin/${id}`),
+
+  replyAdminTicket: (id: string, body: string) =>
+    request<{ ticket: SupportTicketItem }>(`/api/tickets/admin/${id}/reply`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+
+  updateTicketStatus: (
+    id: string,
+    status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
+  ) =>
+    request<{ ticket: SupportTicketItem }>(`/api/tickets/admin/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+
+  completeJob: (id: string) =>
+    request<null>(`/api/jobs/manage/${id}/complete`, { method: "POST" }),
+
+  getAdminWithdrawals: () =>
+    request<{
+      withdrawals: (WithdrawalItem & {
+        user: { id: string; fullName: string; username: string; email: string };
+      })[];
+    }>("/api/withdrawals/admin"),
+
+  processWithdrawal: (
+    id: string,
+    payload: { status: "APPROVED" | "REJECTED"; adminNote?: string }
+  ) =>
+    request<null>(`/api/withdrawals/admin/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  markWithdrawalPaid: (id: string) =>
+    request<null>(`/api/withdrawals/admin/${id}/paid`, { method: "POST" }),
+
+  retryWithdrawalPayout: (id: string) =>
+    request<null>(`/api/withdrawals/admin/${id}/retry-payout`, { method: "POST" }),
+
+  seedCategories: () =>
+    request<{ categories: { id: string; name: string }[] }>(
+      "/api/admin/categories/seed",
+      { method: "POST" }
+    ),
+
+  getSiteContent: () =>
+    request<{ content: Record<string, string> }>("/api/admin/content"),
+
+  upsertSiteContent: (payload: { key: string; value: string }) =>
+    request<null>("/api/admin/content", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+};

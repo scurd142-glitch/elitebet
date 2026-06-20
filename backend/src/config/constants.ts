@@ -1,0 +1,2 @@
+export const REFERRAL_COMMISSION_RATE = 0.1;
+export const MIN_WITHDRAWAL_AMOUNT = 200;
