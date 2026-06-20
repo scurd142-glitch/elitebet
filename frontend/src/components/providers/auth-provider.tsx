@@ -20,6 +20,7 @@ import type { PublicUser } from "@/types/user";
 type AuthContextValue = {
   user: PublicUser | null;
   loading: boolean;
+  balance: number;
   login: (
     identifier: string,
     password: string,
@@ -36,6 +37,7 @@ type AuthContextValue = {
   }) => Promise<string | null>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshBalance: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -44,11 +46,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(0);
+
+  const refreshBalance = useCallback(async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setBalance(0);
+      return;
+    }
+
+    const res = await api.getWallet();
+    if (res.success && res.data?.balance) {
+      setBalance(Number(res.data.balance));
+    }
+  }, []);
 
   const refreshUser = useCallback(async () => {
     const token = getAuthToken();
     if (!token) {
       setUser(null);
+      setBalance(0);
       setLoading(false);
       return;
     }
@@ -56,12 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.me();
     if (res.success && res.data?.user) {
       setUser(res.data.user);
+      await refreshBalance();
     } else {
       clearAuthToken();
       setUser(null);
+      setBalance(0);
     }
     setLoading(false);
-  }, []);
+  }, [refreshBalance]);
 
   useEffect(() => {
     refreshUser();
@@ -118,12 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await api.logout();
     clearAuthToken();
     setUser(null);
+    setBalance(0);
     router.push("/login");
   }, [router]);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, refreshUser }),
-    [user, loading, login, register, logout, refreshUser]
+    () => ({ user, loading, balance, login, register, logout, refreshUser, refreshBalance }),
+    [user, loading, balance, login, register, logout, refreshUser, refreshBalance]
   );
 
   return (

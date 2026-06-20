@@ -115,9 +115,56 @@ router.post("/webhook", async (req, res) => {
     if (data && data.reference) {
       const payment = await prisma.payment.findFirst({ where: { externalRef: data.reference } });
       if (payment && (event === "charge.success" || event === "transaction.success" || data.status === "success")) {
+        if (payment.status === "COMPLETED") {
+          // Already processed, skip
+          return res.json({ status: "ok" });
+        }
+
         await prisma.payment.update({ where: { id: payment.id }, data: { status: "COMPLETED", completedAt: new Date() } });
+
         if (payment.type === "ACCOUNT_ACTIVATION") {
           await prisma.user.updateMany({ where: { id: payment.userId }, data: { accountStatus: "ACTIVE", emailVerifiedAt: new Date() } });
+        } else if (payment.type === "DEPOSIT") {
+          // Update user's wallet balance (displayBalance)
+          const wallet = await prisma.wallet.findUnique({ where: { userId: payment.userId } });
+          if (wallet) {
+            const newBalance = wallet.balance.plus(payment.amount);
+            await prisma.wallet.update({
+              where: { userId: payment.userId },
+              data: { balance: newBalance },
+            });
+            // Create wallet transaction record
+            await prisma.walletTransaction.create({
+              data: {
+                walletId: wallet.id,
+                type: "CREDIT",
+                reason: "DEPOSIT",
+                amount: payment.amount as any,
+                balanceAfter: newBalance,
+                paymentId: payment.id,
+                description: "Deposit via M-Pesa",
+              },
+            });
+          } else {
+            // Create wallet if it doesn't exist
+            const newWallet = await prisma.wallet.create({
+              data: {
+                userId: payment.userId,
+                balance: payment.amount as any,
+              },
+            });
+            await prisma.walletTransaction.create({
+              data: {
+                walletId: newWallet.id,
+                type: "CREDIT",
+                reason: "DEPOSIT",
+                amount: payment.amount as any,
+                balanceAfter: payment.amount as any,
+                paymentId: payment.id,
+                description: "Deposit via M-Pesa",
+              },
+            });
+          }
         }
       }
     }

@@ -178,6 +178,12 @@ export const api = {
 
   getWallet: () => request<WalletData>("/api/wallet"),
 
+  initiateDeposit: (payload: { amount: number }) =>
+    request<{ authorization_url: string; reference: string }>(
+      "/api/payments/initialize",
+      { method: "POST", body: JSON.stringify({ ...payload, type: "DEPOSIT" }) }
+    ),
+
   getReferrals: () => request<ReferralData>("/api/wallet/referrals"),
 
   getMyWithdrawals: () =>
