@@ -1,15 +1,15 @@
 {
-  "name": "writersnite",
-  "version": "0.1.0",
+  "name": "elitebet",
+  "version": "1.0.0",
   "private": true,
-  "description": "WRITERSNITE — enterprise writing marketplace by SCURDTECHS PRODUCTION LIMITED",
+  "description": "EliteBet — Kenya's ultimate simulation betting platform",
   "workspaces": [
     "frontend",
     "backend",
     "shared"
   ],
   "scripts": {
-    "postinstall": "npm run build --workspace=@writersnite/shared",
+    "postinstall": "npm run build --workspace=@elitebet/shared",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
     "build:frontend": "npm run build --workspace=frontend",

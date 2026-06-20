@@ -5,41 +5,23 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("⚠️  WARNING: This will delete ALL users and related data!");
   console.log("Press Ctrl+C to cancel, or wait 5 seconds to continue...");
-  
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  
+
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   console.log("Starting database cleanup...");
 
-  // Delete in order to respect foreign key constraints
-  // Most relations have cascade delete, but we'll be thorough
-  
   const tables = [
-    // Job-related
-    { name: "JobSubmission", model: prisma.jobSubmission },
-    { name: "Job", model: prisma.job },
-    
-    // Payment & wallet
     { name: "WalletTransaction", model: prisma.walletTransaction },
     { name: "Withdrawal", model: prisma.withdrawal },
     { name: "Payment", model: prisma.payment },
     { name: "Wallet", model: prisma.wallet },
-    { name: "Subscription", model: prisma.subscription },
-    
-    // User-related
     { name: "Referral", model: prisma.referral },
     { name: "Notification", model: prisma.notification },
-    { name: "Invoice", model: prisma.invoice },
-    { name: "TestResult", model: prisma.testResult },
-    { name: "UserAchievement", model: prisma.userAchievement },
-    { name: "UserGamification", model: prisma.userGamification },
     { name: "AdminLog", model: prisma.adminLog },
     { name: "SupportTicket", model: prisma.supportTicket },
-    { name: "BlogPost", model: prisma.blogPost },
     { name: "RefreshToken", model: prisma.refreshToken },
     { name: "OtpVerification", model: prisma.otpVerification },
     { name: "UserRole", model: prisma.userRole },
-    
-    // Users last (after all dependent records)
     { name: "User", model: prisma.user },
   ];
 

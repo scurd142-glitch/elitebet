@@ -1,5 +1,5 @@
-const TOKEN_KEY = "writersnite_token";
-const COOKIE_NAME = "writersnite_token";
+const TOKEN_KEY = "elitebet_token";
+const COOKIE_NAME = "elitebet_token";
 
 const ONE_DAY = 60 * 60 * 24;
 const SEVEN_DAYS = 60 * 60 * 24 * 7;

@@ -32,7 +32,7 @@ export async function triggerWithdrawalPayout(withdrawalId: string): Promise<voi
         source: "balance",
         amount: Math.round(amount * 100), // Paystack uses kobo
         recipient: withdrawal.destination, // Recipient code from Paystack
-        reason: `WritersNite withdrawal WN-${withdrawalId}`,
+        reason: `EliteBet withdrawal EB-${withdrawalId}`,
         metadata: { withdrawal_id: withdrawalId },
       }),
     });

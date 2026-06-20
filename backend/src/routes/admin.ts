@@ -71,10 +71,10 @@ router.put("/withdrawals/:id", async (req, res) => {
 router.get("/analytics", async (_req, res) => {
   try {
     const usersCount = await prisma.user.count();
-    const jobsCount = await prisma.job.count();
+    const depositsCount = await prisma.payment.count({ where: { status: "COMPLETED" } });
     const revenue = await prisma.payment.aggregate({ _sum: { amount: true }, where: { status: "COMPLETED" } });
     const withdrawalsPending = await prisma.withdrawal.count({ where: { status: "PENDING" } });
-    return res.json({ success: true, analytics: { usersCount, jobsCount, revenue: revenue._sum.amount ?? 0, withdrawalsPending } });
+    return res.json({ success: true, analytics: { usersCount, depositsCount, revenue: revenue._sum.amount ?? 0, withdrawalsPending } });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error);

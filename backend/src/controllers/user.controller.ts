@@ -21,9 +21,6 @@ export async function getDashboard(req: AuthRequest, res: Response) {
     prisma.user.count({ where: { referredById: userId } }),
   ]);
 
-  const openJobs = await prisma.job.count({ where: { status: "OPEN" } });
-  const recentSubmissions = await prisma.jobSubmission.findMany({ where: { userId }, include: { job: true }, orderBy: { submittedAt: "desc" }, take: 5 });
-
   res.json({
     success: true,
     data: {
@@ -32,13 +29,9 @@ export async function getDashboard(req: AuthRequest, res: Response) {
         balance: wallet ? toNumber(wallet.balance) : 0,
         totalEarned: 0,
         referralCount,
-        activeJobs: recentSubmissions.filter((s) => s.status === "PENDING").length,
-        openJobs,
         unreadNotifications: notifications.filter((n) => !n.readAt).length,
       },
       recentNotifications: notifications,
-      recentAssignments: recentSubmissions,
-      announcements: [],
     },
   });
 }
@@ -116,8 +109,4 @@ export async function getActivity(req: AuthRequest, res: Response) {
   // activity model not present in schema — return admin logs as safe placeholder
   const activities = await prisma.adminLog.findMany({ where: { actorId: userId }, orderBy: { createdAt: "desc" }, take: 30 });
   res.json({ success: true, data: { activities } });
-}
-
-export async function getAnnouncements(_req: AuthRequest, res: Response) {
-  res.json({ success: true, data: { announcements: [] } });
 }

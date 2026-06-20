@@ -41,7 +41,7 @@ export default function Verify2FAPage() {
         return;
       }
 
-      window.localStorage.setItem("writersnite_token", data.token);
+      window.localStorage.setItem("elitebet_token", data.token);
       router.push("/dashboard");
     } catch (error) {
       // eslint-disable-next-line no-console

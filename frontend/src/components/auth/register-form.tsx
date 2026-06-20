@@ -59,7 +59,7 @@ function RegisterFormInner() {
     <Card className="glass border-primary/20">
       <CardHeader>
         <CardTitle>Create your account</CardTitle>
-        <CardDescription>Join WritersNite and start your writer journey.</CardDescription>
+        <CardDescription>Join EliteBet and start betting today.</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">

@@ -1,13 +1,13 @@
 /**
- * Cross-cutting types and constants for WRITERSNITE.
+ * Cross-cutting types and constants for EliteBet.
  * Keep domain enums aligned with Prisma schema in backend/prisma/schema.prisma.
  */
 
 export const BRAND = {
-  name: "WRITERSNITE",
-  legalEntity: "SCURDTECHS PRODUCTION LIMITED",
-  country: "United States of America",
-  supportEmail: "support@writersnite.com",
+  name: "EliteBet",
+  legalEntity: "EliteBet",
+  country: "Kenya",
+  supportEmail: "support@elitebet.co.ke",
 } as const;
 
 export type ApiSuccess<T> = {

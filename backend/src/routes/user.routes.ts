@@ -6,8 +6,6 @@ import * as userController from "../controllers/user.controller";
 
 export const userRouter = Router();
 
-userRouter.get("/announcements", asyncHandler(userController.getAnnouncements));
-
 userRouter.use(authMiddleware);
 
 userRouter.get("/dashboard", requireActivated, asyncHandler(userController.getDashboard));

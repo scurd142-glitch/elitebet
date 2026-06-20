@@ -2,7 +2,7 @@ import { createServer } from "http";
 import { env } from "./config/env";
 import { createApp } from "./app";
 
-const BRAND = "WRITERSNITE";
+const BRAND = "EliteBet";
 
 const app = createApp(env);
 const server = createServer(app);

@@ -2,12 +2,9 @@ import { getAuthToken } from "@/lib/auth-storage";
 import type {
   PublicUser,
   DashboardData,
-  JobItem,
-  JobAssignmentItem,
   WalletData,
   ReferralData,
   WithdrawalItem,
-  AnnouncementItem,
   NotificationItem,
   ActivityItem,
   ContactMessageItem,
@@ -179,35 +176,6 @@ export const api = {
       body: JSON.stringify({ body }),
     }),
 
-  getAnnouncements: () =>
-    request<{ announcements: AnnouncementItem[] }>("/api/user/announcements"),
-
-  getJobCategories: () =>
-    request<{ categories: { id: string; name: string; slug: string }[] }>(
-      "/api/jobs/categories"
-    ),
-
-  getOpenJobs: (categoryId?: string) =>
-    request<{ jobs: JobItem[] }>(
-      `/api/jobs${categoryId ? `?categoryId=${categoryId}` : ""}`
-    ),
-
-  getMyJobs: () =>
-    request<{ assignments: JobAssignmentItem[] }>("/api/jobs/mine"),
-
-  getJob: (id: string) => request<{ job: JobItem }>(`/api/jobs/${id}`),
-
-  acceptJob: (id: string) =>
-    request<{ assignmentId: string }>(`/api/jobs/${id}/accept`, {
-      method: "POST",
-    }),
-
-  submitJob: (id: string, submissionText: string) =>
-    request<null>(`/api/jobs/${id}/submit`, {
-      method: "POST",
-      body: JSON.stringify({ submissionText }),
-    }),
-
   getWallet: () => request<WalletData>("/api/wallet"),
 
   getReferrals: () => request<ReferralData>("/api/wallet/referrals"),
@@ -265,47 +233,6 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  getAdminAnnouncements: () =>
-    request<{ announcements: AnnouncementItem[] }>("/api/admin/announcements"),
-
-  createAnnouncement: (payload: {
-    title: string;
-    body: string;
-    isActive?: boolean;
-  }) =>
-    request<{ announcement: AnnouncementItem }>("/api/admin/announcements", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-
-  updateAnnouncement: (
-    id: string,
-    payload: { title?: string; body?: string; isActive?: boolean }
-  ) =>
-    request<{ announcement: AnnouncementItem }>(
-      `/api/admin/announcements/${id}`,
-      { method: "PATCH", body: JSON.stringify(payload) }
-    ),
-
-  deleteAnnouncement: (id: string) =>
-    request<null>(`/api/admin/announcements/${id}`, { method: "DELETE" }),
-
-  getAdminCategories: () =>
-    request<{
-      categories: {
-        id: string;
-        name: string;
-        slug: string;
-        description: string | null;
-      }[];
-    }>("/api/admin/categories"),
-
-  createCategory: (payload: { name: string; description?: string }) =>
-    request<{ category: { id: string; name: string; slug: string } }>(
-      "/api/admin/categories",
-      { method: "POST", body: JSON.stringify(payload) }
-    ),
-
   getContactMessages: () =>
     request<{ messages: ContactMessageItem[] }>("/api/contact"),
 
@@ -333,9 +260,6 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
-  completeJob: (id: string) =>
-    request<null>(`/api/jobs/manage/${id}/complete`, { method: "POST" }),
-
   getAdminWithdrawals: () =>
     request<{
       withdrawals: (WithdrawalItem & {
@@ -357,19 +281,4 @@ export const api = {
 
   retryWithdrawalPayout: (id: string) =>
     request<null>(`/api/withdrawals/admin/${id}/retry-payout`, { method: "POST" }),
-
-  seedCategories: () =>
-    request<{ categories: { id: string; name: string }[] }>(
-      "/api/admin/categories/seed",
-      { method: "POST" }
-    ),
-
-  getSiteContent: () =>
-    request<{ content: Record<string, string> }>("/api/admin/content"),
-
-  upsertSiteContent: (payload: { key: string; value: string }) =>
-    request<null>("/api/admin/content", {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    }),
 };

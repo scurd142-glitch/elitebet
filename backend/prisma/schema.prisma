@@ -1,4 +1,4 @@
-// WRITERSNITE — PostgreSQL schema (SCURDTECHS PRODUCTION LIMITED)
+// EliteBet — PostgreSQL schema
 // https://pris.ly/d/prisma-schema
 
 generator client {
@@ -36,13 +36,8 @@ enum PaymentProvider {
 
 enum PaymentType {
   ACCOUNT_ACTIVATION
-  SUBSCRIPTION
-  JOB_COMMISSION
-  FEATURED_JOB
+  DEPOSIT
   ADVERTISING
-  SPONSORED_LISTING
-  FREELANCER_UPGRADE
-  PREMIUM_BADGE
   OTHER
 }
 
@@ -61,48 +56,17 @@ enum WalletTransactionType {
 }
 
 enum WalletTransactionReason {
-  JOB_PAYOUT
+  DEPOSIT
   REFERRAL_BONUS
   WITHDRAWAL
   ACTIVATION_FEE
   PLATFORM_FEE
   ADJUSTMENT
   BONUS
-  MILESTONE
-  DAILY_REWARD
+  BET
+  WIN
+  TRANSFER
   OTHER
-}
-
-enum JobCategory {
-  ARTICLE_WRITING
-  ACADEMIC_WRITING
-  COPYWRITING
-  TRANSCRIPTION
-  TRANSLATION
-  PROOFREADING
-  BLOGGING
-  SOCIAL_MEDIA_CAPTIONS
-  PRODUCT_DESCRIPTIONS
-  AI_PROMPT_EDITING
-}
-
-enum JobStatus {
-  DRAFT
-  OPEN
-  ASSIGNED
-  IN_PROGRESS
-  SUBMITTED
-  UNDER_REVIEW
-  REVISION_REQUESTED
-  COMPLETED
-  CANCELLED
-}
-
-enum JobSubmissionStatus {
-  PENDING
-  APPROVED
-  REVISION_REQUESTED
-  REJECTED
 }
 
 enum WithdrawalMethod {
@@ -128,11 +92,11 @@ enum NotificationChannel {
 enum NotificationType {
   SYSTEM
   PAYMENT
-  JOB
   WITHDRAWAL
   REFERRAL
   SECURITY
-  ACHIEVEMENT
+  BET
+  PROMOTION
 }
 
 enum SupportTicketStatus {
@@ -156,22 +120,6 @@ enum OtpPurpose {
   LOGIN
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  TRIALING
-}
-
-enum WriterRank {
-  BEGINNER
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-  ELITE_WRITER
-}
-
 enum AdminLogAction {
   USER_BAN
   USER_UNBAN
@@ -179,9 +127,6 @@ enum AdminLogAction {
   USER_DEACTIVATE
   WITHDRAWAL_APPROVE
   WITHDRAWAL_REJECT
-  JOB_CREATE
-  JOB_UPDATE
-  JOB_DELETE
   PAYMENT_VERIFY
   CONTENT_MODERATION
   SYSTEM_CONFIG
@@ -215,6 +160,8 @@ model User {
   phoneVerifiedAt DateTime?
   verificationTier UserVerificationTier @default(NONE)
   twoFactorEnabled Boolean @default(false)
+  isVerified    Boolean   @default(false)
+  promoCode     String?
 
   referralCode String @unique
   referredById String?
@@ -227,33 +174,20 @@ model User {
   payments          Payment[]
   walletTransactions WalletTransaction[] @relation("WalletTxActor")
 
-  jobsCreated Job[] @relation("JobCreator")
-  jobsTaken   Job[] @relation("JobAssignee")
-  submissions JobSubmission[]
-
   referralsMade Referral[] @relation("ReferrerUser")
   referredAs    Referral[] @relation("ReferredUser")
 
   withdrawals Withdrawal[]
 
   notifications Notification[]
-  invoices      Invoice[]
-  testResults   TestResult[]
-
-  userAchievements UserAchievement[]
-  gamification     UserGamification?
 
   adminLogsTarget AdminLog[] @relation("AdminLogTargetUser")
   adminLogsActor  AdminLog[] @relation("AdminLogActor")
 
   supportTickets SupportTicket[]
 
-  blogPosts BlogPost[]
-
   refreshTokens RefreshToken[]
   otpCodes      OtpVerification[]
-
-  subscriptions Subscription[]
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -320,7 +254,7 @@ model Payment {
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount        Decimal         @db.Decimal(18, 2)
-  currency      String          @default("USD")
+  currency      String          @default("KES")
   provider      PaymentProvider
   type          PaymentType
   status        PaymentStatus   @default(PENDING)
@@ -344,8 +278,10 @@ model Wallet {
   userId         String   @unique
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   balance        Decimal  @default(0) @db.Decimal(18, 2)
+  casinoBalance  Decimal  @default(0) @db.Decimal(18, 2)
+  bonusBalance   Decimal  @default(0) @db.Decimal(18, 2)
   pendingBalance Decimal  @default(0) @db.Decimal(18, 2)
-  currency       String   @default("USD")
+  currency       String   @default("KES")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -379,7 +315,7 @@ model Withdrawal {
   userId        String
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount        Decimal           @db.Decimal(18, 2)
-  currency      String            @default("USD")
+  currency      String            @default("KES")
   method        WithdrawalMethod
   status        WithdrawalStatus  @default(PENDING)
   destination   String?
@@ -393,83 +329,6 @@ model Withdrawal {
 
   @@index([userId, status])
   @@index([status, createdAt])
-}
-
-model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planKey              String
-  status               SubscriptionStatus @default(ACTIVE)
-  provider             PaymentProvider
-  externalSubscription String?            @unique
-  currentPeriodStart   DateTime?
-  currentPeriodEnd     DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
-  metadata             Json?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-
-  @@index([userId, status])
-}
-
-// -----------------------------------------------------------------------------
-// Jobs
-// -----------------------------------------------------------------------------
-
-model Job {
-  id              String      @id @default(cuid())
-  title           String
-  description     String      @db.Text
-  category        JobCategory
-  budget          Decimal     @db.Decimal(18, 2)
-  currency        String      @default("USD")
-  status          JobStatus   @default(OPEN)
-  deadline        DateTime?
-  featured        Boolean     @default(false)
-  sponsored       Boolean     @default(false)
-  commissionRate  Decimal?    @db.Decimal(5, 4)
-
-  createdById String
-  createdBy   User   @relation("JobCreator", fields: [createdById], references: [id])
-
-  assignedUserId String?
-  assignedUser   User?   @relation("JobAssignee", fields: [assignedUserId], references: [id])
-
-  submissions JobSubmission[]
-  invoices    Invoice[]
-
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([status, category])
-  @@index([assignedUserId])
-  @@index([createdById])
-  @@index([deadline])
-  @@index([featured])
-  @@index([deletedAt])
-}
-
-model JobSubmission {
-  id             String               @id @default(cuid())
-  jobId          String
-  job            Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         JobSubmissionStatus  @default(PENDING)
-  contentUrl     String?
-  attachmentUrls String[]             @default([])
-  notes          String?              @db.Text
-  revisionNotes  String?              @db.Text
-  submittedAt    DateTime             @default(now())
-  reviewedAt     DateTime?
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-
-  @@index([jobId])
-  @@index([userId])
-  @@index([status])
 }
 
 // -----------------------------------------------------------------------------
@@ -509,92 +368,6 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([createdAt])
-}
-
-model Invoice {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId         String?
-  job           Job?     @relation(fields: [jobId], references: [id])
-  amount        Decimal  @db.Decimal(18, 2)
-  status        String   @default("UNPAID")
-  invoiceNumber String   @unique
-  createdAt     DateTime @default(now())
-}
-
-model Resource {
-  id          String   @id @default(cuid())
-  title       String
-  description String?  @db.Text
-  content     String?  @db.Text
-  category    String?
-  isPremium   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-}
-
-model WritingTest {
-  id        String   @id @default(cuid())
-  title     String
-  questions Json
-  passScore Int      @default(70)
-  createdAt DateTime @default(now())
-
-  results TestResult[]
-}
-
-model TestResult {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  testId    String
-  test      WritingTest @relation(fields: [testId], references: [id], onDelete: Cascade)
-  score     Int
-  passed    Boolean
-  takenAt   DateTime    @default(now())
-
-  @@index([userId])
-  @@index([testId])
-}
-
-// -----------------------------------------------------------------------------
-// Gamification
-// -----------------------------------------------------------------------------
-
-model Achievement {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  description String   @db.Text
-  iconKey     String?
-  xpReward    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  users UserAchievement[]
-}
-
-model UserAchievement {
-  userId        String
-  achievementId String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  earnedAt      DateTime    @default(now())
-  metadata      Json?
-
-  @@id([userId, achievementId])
-  @@index([achievementId])
-}
-
-model UserGamification {
-  userId       String     @id
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rank         WriterRank @default(BEGINNER)
-  xpPoints     Int        @default(0)
-  levelNumeric Int        @default(1)
-  streakDays   Int        @default(0)
-  lastLoginAt  DateTime?
-  updatedAt    DateTime   @updatedAt
 }
 
 // -----------------------------------------------------------------------------
@@ -640,22 +413,6 @@ model SupportTicket {
   @@index([userId])
 }
 
-model Testimonial {
-  id         String   @id @default(cuid())
-  authorName String
-  roleTitle  String?
-  company    String?
-  content    String   @db.Text
-  rating     Int?
-  approved   Boolean  @default(false)
-  featured   Boolean  @default(false)
-  avatarUrl  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([approved, featured])
-}
-
 model Faq {
   id         String   @id @default(cuid())
   question   String
@@ -667,64 +424,4 @@ model Faq {
   updatedAt  DateTime @updatedAt
 
   @@index([published, category])
-}
-
-model BlogCategory {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  description String?
-  posts       BlogPost[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model BlogTag {
-  id    String         @id @default(cuid())
-  name  String
-  slug  String         @unique
-  posts BlogPostTag[]
-
-  createdAt DateTime @default(now())
-}
-
-model BlogPost {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  title           String
-  excerpt         String?  @db.Text
-  content         String   @db.Text
-  featuredImage   String?
-  seoTitle        String?
-  seoDescription  String?  @db.Text
-  published       Boolean  @default(false)
-  featured        Boolean  @default(false)
-  publishedAt     DateTime?
-
-  authorId String?
-  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
-
-  categoryId String?
-  category   BlogCategory? @relation(fields: [categoryId], references: [id])
-
-  tags BlogPostTag[]
-
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([published, publishedAt])
-  @@index([categoryId])
-  @@index([deletedAt])
-}
-
-model BlogPostTag {
-  postId String
-  tagId  String
-  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([postId, tagId])
-  @@index([tagId])
 }

@@ -1,4 +1,5 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" fill="#1B3A2B"/>
-  <text x="256" y="256" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="#C9A227" text-anchor="middle" dominant-baseline="middle">WN</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#111111"/>
+  <path d="M149 128 L149 384 L234 384 C306 384 362 328 362 256 C362 184 306 128 234 128 Z" fill="#00a651"/>
+  <path d="M213 192 L213 320 L234 320 C272 320 298 294 298 256 C298 218 272 192 234 192 Z" fill="#111111"/>
 </svg>

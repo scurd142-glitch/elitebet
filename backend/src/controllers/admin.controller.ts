@@ -12,11 +12,10 @@ import type { AuthRequest } from "../middleware/auth.middleware";
 import { paramId } from "../utils/params";
 
 export async function getAnalytics(_req: AuthRequest, res: Response) {
-  const [totalUsers, suspendedUsers, newUsersWeek, openJobs, pendingWithdrawals, activatedUsers, totalRevenue] = await Promise.all([
+  const [totalUsers, suspendedUsers, newUsersWeek, pendingWithdrawals, activatedUsers, totalRevenue] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { accountStatus: "BANNED" } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
-    prisma.job.count({ where: { status: "OPEN" } }),
     prisma.withdrawal.count({ where: { status: "PENDING" } }),
     prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
     prisma.payment.aggregate({
@@ -43,7 +42,6 @@ export async function getAnalytics(_req: AuthRequest, res: Response) {
         totalUsers,
         suspendedUsers,
         newUsersWeek,
-        openJobs,
         pendingWithdrawals,
         activatedUsers,
         totalRevenue: totalRevenue._sum.amount ? Number(totalRevenue._sum.amount) : 0,

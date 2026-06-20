@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         res.data.user.role === "ADMIN"
           ? "/admin"
           : res.data.user.accountStatus === "ACTIVE"
-            ? "/dashboard"
+            ? "/"
             : "/activate";
       router.push(dest);
       return null;
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         res.data.user.role === "ADMIN"
           ? "/admin"
           : res.data.user.accountStatus === "ACTIVE"
-            ? "/dashboard"
+            ? "/"
             : "/activate";
       router.push(dest);
       return null;

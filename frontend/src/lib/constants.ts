@@ -1,26 +1,38 @@
-export const SITE = {
-  name: "WritersNite",
-  tagline: "Write. Earn. Grow",
-  company: "WRITERSNITE PRODUCTION LIMITED",
-  description:
-    "WritersNite is a premium writing platform where skilled writers connect with opportunities, grow their careers, and earn from quality work.",
-  url: "https://writersnite.com",
-  email: "hello@writersnite.com",
-  supportEmail: "support@writersnite.com",
+export const COLORS = {
+  pageBg: "#111111",
+  cardBg: "#1a1a1a",
+  surfaceSecondary: "#222222",
+  primary: "#00a651",
+  gold: "#f5c518",
+  textPrimary: "#ffffff",
+  textMuted: "#888888",
+  border: "#333333",
+  error: "#e63946",
+  inputBg: "#222222",
+  inputBorder: "#333333",
 } as const;
 
-export const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/contact", label: "Contact" },
-] as const;
+export const SITE = {
+  name: "EliteBet",
+  tagline: "Kenya's ultimate simulation betting experience",
+  company: "EliteBet",
+  description:
+    "EliteBet is a simulation betting platform where you deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
+  url: process.env.NEXT_PUBLIC_APP_URL ?? "https://elitebet.co.ke",
+  email: "hello@elitebet.co.ke",
+  supportEmail: "support@elitebet.co.ke",
+  version: "v1.0.0",
+  paybill: process.env.NEXT_PUBLIC_PAYSTACK_PAYBILL ?? "4090000",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "+254700000000",
+} as const;
 
 export const FOOTER_LINKS = {
-  platform: [
-    { href: "/about", label: "About Us" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/contact", label: "Contact" },
+  info: [
+    { href: "/how-to-play", label: "How to Play" },
+    { href: "/faq", label: "FAQ" },
+    { href: "/terms", label: "Terms & Conditions" },
+    { href: "/privacy", label: "Privacy Policy" },
+    { href: "/responsible-gambling", label: "Responsible Gambling" },
   ],
   account: [
     { href: "/login", label: "Login" },

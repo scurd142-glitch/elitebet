@@ -5,11 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  Briefcase,
   Banknote,
-  Megaphone,
-  FileText,
-  FolderTree,
   Mail,
   Headphones,
   Smartphone,
@@ -22,16 +18,12 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { href: "/admin", label: "Analytics", icon: LayoutDashboard, color: "text-violet-400" },
-  { href: "/admin/users", label: "Users", icon: Users, color: "text-blue-400" },
-  { href: "/admin/activations", label: "Activations", icon: Smartphone, color: "text-green-400" },
-  { href: "/admin/jobs", label: "Jobs", icon: Briefcase, color: "text-green-400" },
-  { href: "/admin/withdrawals", label: "Withdrawals", icon: Banknote, color: "text-orange-400" },
-  { href: "/admin/announcements", label: "Announcements", icon: Megaphone, color: "text-pink-400" },
-  { href: "/admin/content", label: "Site content", icon: FileText, color: "text-yellow-400" },
-  { href: "/admin/categories", label: "Categories", icon: FolderTree, color: "text-green-400" },
-  { href: "/admin/contact", label: "Contact inbox", icon: Mail, color: "text-pink-400" },
-  { href: "/admin/tickets", label: "Support tickets", icon: Headphones, color: "text-violet-400" },
+  { href: "/admin", label: "Analytics", icon: LayoutDashboard },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/activations", label: "Activations", icon: Smartphone },
+  { href: "/admin/withdrawals", label: "Withdrawals", icon: Banknote },
+  { href: "/admin/contact", label: "Contact inbox", icon: Mail },
+  { href: "/admin/tickets", label: "Support tickets", icon: Headphones },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -39,21 +31,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
 
   return (
-    <div className="min-h-screen pt-16 pb-8">
-      <div className="dashboard-layout">
-        <aside className="dashboard-sidebar relative border-amber-500/20">
-          <div className="mb-6 flex items-center gap-3 px-1">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg shadow-amber-500/30">
-              <Shield className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-[#111111] pt-4 pb-8">
+      <div className="flex min-h-screen">
+        <aside className="fixed h-full w-64 border-r border-[#333333] bg-[#1a1a1a] p-4">
+          <div className="mb-6 flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#00a651]">
+              <Shield className="h-5 w-5 text-[#ffffff]" />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#FFD700]">Admin Panel</p>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#FF4444] text-white ml-2">ADMIN</span>
-              <p className="text-xs text-muted-foreground mt-1">Platform management</p>
+              <p className="text-sm font-bold text-[#ffffff]">Admin Panel</p>
+              <p className="text-xs text-[#888888]">EliteBet management</p>
             </div>
           </div>
 
-          <nav className="flex-1 space-y-1">
+          <nav className="space-y-1">
             {NAV.map((item) => {
               const active =
                 pathname === item.href ||
@@ -63,30 +54,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                     active
-                      ? "nav-item-active"
-                      : "text-white hover:bg-white/5 hover:text-[#FFD700]"
+                      ? "bg-[#222222] text-[#00a651]"
+                      : "text-[#888888] hover:bg-[#222222] hover:text-[#ffffff]"
                   )}
                 >
-                  <item.icon className={cn("h-4 w-4", active ? "text-[#FFD700]" : "text-white")} />
+                  <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="mt-4 space-y-1 border-t border-white/5 pt-4">
+          <div className="mt-4 space-y-1 border-t border-[#333333] pt-4">
             <Link
-              href="/dashboard"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-violet-500/10 hover:text-violet-400"
+              href="/"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#888888] hover:text-[#ffffff]"
             >
               <ArrowLeft className="h-4 w-4" />
-              Writer dashboard
+              Back to site
             </Link>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 rounded-xl hover:bg-red-500/10 hover:text-red-400"
+              className="w-full justify-start gap-3 text-[#888888] hover:text-[#e63946]"
               onClick={() => logout()}
             >
               <LogOut className="h-4 w-4" />
@@ -95,9 +86,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <main className="dashboard-main">
-          <div className="dashboard-main-inner">{children}</div>
-        </main>
+        <main className="ml-64 flex-1 p-6">{children}</main>
       </div>
     </div>
   );

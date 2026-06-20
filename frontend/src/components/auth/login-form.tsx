@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PenLine } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,35 +36,29 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="glass-premium">
+    <Card className="border-[#333333] bg-[#1a1a1a] text-[#ffffff]">
       <CardHeader>
-        <div className="flex justify-center mb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 via-orange-400 to-violet-500 text-white">
-            <PenLine className="h-6 w-6" />
-          </div>
-        </div>
-        <CardTitle className="text-[#FFD700] text-center">Welcome back</CardTitle>
-        <CardDescription className="text-center">Sign in to your WritersNite account.</CardDescription>
+        <CardTitle className="text-center text-[#ffffff]">Welcome back</CardTitle>
+        <CardDescription className="text-center text-[#888888]">
+          Sign in to your EliteBet account.
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-            </p>
-          )}
+          {error && <p className="error-state">{error}</p>}
           <div className="space-y-2">
-            <Label htmlFor="login-email">Email or username</Label>
+            <Label htmlFor="login-email" className="text-[#ffffff]">Email or username</Label>
             <Input
               id="login-email"
               name="identifier"
               autoComplete="username"
               required
               disabled={loading}
+              className="border-[#333333] bg-[#222222] text-[#ffffff]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="login-password">Password</Label>
+            <Label htmlFor="login-password" className="text-[#ffffff]">Password</Label>
             <Input
               id="login-password"
               name="password"
@@ -73,25 +66,26 @@ export function LoginForm() {
               autoComplete="current-password"
               required
               disabled={loading}
+              className="border-[#333333] bg-[#222222] text-[#ffffff]"
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <label className="flex items-center gap-2 text-sm text-[#888888]">
             <input
               type="checkbox"
               name="remember"
-              className="rounded border-border accent-primary"
+              className="rounded border-[#333333] accent-[#00a651]"
               disabled={loading}
             />
             Remember me (7 days)
           </label>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full btn-premium" disabled={loading}>
+          <Button type="submit" className="w-full bg-[#00a651] text-[#ffffff] hover:opacity-90" disabled={loading}>
             {loading ? "Signing in…" : "Sign in"}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-[#888888]">
             No account?{" "}
-            <Link href="/register" className="text-[#FFD700] hover:underline">
+            <Link href="/register" className="text-[#f5c518] hover:underline">
               Register
             </Link>
           </p>

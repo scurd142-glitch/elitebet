@@ -12,7 +12,7 @@ RUN npm install
 COPY shared ./shared
 COPY backend ./backend
 
-RUN npm run build --workspace=@writersnite/shared
+RUN npm run build --workspace=@elitebet/shared
 WORKDIR /app/backend
 RUN npx prisma generate
 RUN npm run build

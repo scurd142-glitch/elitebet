@@ -1,10 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { decimal, toNumber } from "./money";
-import { logActivity } from "./activity";
-import {
-  REFERRAL_COMMISSION_RATE,
-} from "../config/constants";
 import { NotificationType, WalletTransactionReason } from "@prisma/client";
 
 export async function ensureWallet(userId: string) {
@@ -20,6 +16,7 @@ async function creditWallet(
   userId: string,
   amount: number,
   description: string,
+  reason: WalletTransactionReason,
   referenceId?: string
 ) {
   const wallet = await tx.wallet.upsert({
@@ -33,8 +30,8 @@ async function creditWallet(
   await tx.walletTransaction.create({
     data: {
       walletId: wallet.id,
-      type: "CREDIT" as any,
-      reason: WalletTransactionReason.JOB_PAYOUT,
+      type: "CREDIT",
+      reason,
       amount: decimal(amount),
       balanceAfter: wallet.balance,
       description,
@@ -43,60 +40,6 @@ async function creditWallet(
   });
 
   return wallet;
-}
-
-export async function payJobCompletion(
-  writerId: string,
-  jobId: string,
-  payout: number,
-  jobTitle: string
-) {
-  await prisma.$transaction(async (tx) => {
-    await creditWallet(
-      tx,
-      writerId,
-      payout,
-      `Payment for job: ${jobTitle}`,
-      jobId
-    );
-
-    const writer = await tx.user.findUnique({
-      where: { id: writerId },
-      select: { referredById: true },
-    });
-
-    if (writer?.referredById) {
-      const commission = Math.round(payout * REFERRAL_COMMISSION_RATE * 100) / 100;
-      if (commission > 0) {
-        await creditWallet(
-          tx,
-          writer.referredById,
-          commission,
-          `Referral commission from ${jobTitle}`,
-          jobId
-        );
-
-        await tx.referral.create({
-          data: {
-            referrerId: writer.referredById,
-            referredUserId: writerId,
-            commissionEarned: decimal(commission),
-          },
-        });
-
-        await tx.notification.create({
-          data: {
-            userId: writer.referredById,
-            title: "Referral commission earned",
-            body: `You earned KES ${commission.toFixed(2)} from a referral job completion.`,
-            type: NotificationType.REFERRAL,
-          },
-        });
-      }
-    }
-  });
-
-  await logActivity(writerId, "job_payment_received", { jobId, payout });
 }
 
 export async function debitWalletForWithdrawal(
@@ -120,7 +63,7 @@ export async function debitWalletForWithdrawal(
     await tx.walletTransaction.create({
       data: {
         walletId: w.id,
-        type: "DEBIT" as any,
+        type: "DEBIT",
         reason: WalletTransactionReason.WITHDRAWAL,
         amount: decimal(-amount),
         balanceAfter: w.balance,

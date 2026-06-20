@@ -1,10 +1,4 @@
-import {
-  PrismaClient,
-  JobCategory,
-  JobStatus,
-  WriterRank,
-  AccountStatus,
-} from "@prisma/client";
+import { PrismaClient, AccountStatus } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 
@@ -20,20 +14,7 @@ async function main() {
     });
   }
 
-  const achievements = [
-    { slug: "first-job", name: "First Assignment", description: "Complete your first job.", xpReward: 50 },
-    { slug: "streak-7", name: "Week Warrior", description: "Maintain a 7-day activity streak.", xpReward: 120 },
-    { slug: "top-earner", name: "Rising Earner", description: "Reach $100 in verified earnings.", xpReward: 200 },
-  ];
-  for (const a of achievements) {
-    await prisma.achievement.upsert({
-      where: { slug: a.slug },
-      update: {},
-      create: a,
-    });
-  }
-
-  const adminEmail = "admin@writersnite.local";
+  const adminEmail = "admin@elitebet.local";
   const passwordHash = await bcrypt.hash("ChangeMeInProduction!1", 12);
 
   const adminUser = await prisma.user.upsert({
@@ -44,9 +25,11 @@ async function main() {
       username: "admin",
       passwordHash,
       fullName: "Platform Administrator",
-      country: "US",
+      country: "KE",
+      phone: "254700000000",
       accountStatus: AccountStatus.ACTIVE,
       emailVerifiedAt: new Date(),
+      isVerified: true,
       referralCode: `ADM${randomBytes(4).toString("hex").toUpperCase()}`,
     },
   });
@@ -61,55 +44,31 @@ async function main() {
   await prisma.wallet.upsert({
     where: { userId: adminUser.id },
     update: {},
-    create: { userId: adminUser.id, balance: 0, currency: "USD" },
-  });
-
-  await prisma.userGamification.upsert({
-    where: { userId: adminUser.id },
-    update: {},
-    create: { userId: adminUser.id, rank: WriterRank.ELITE_WRITER, xpPoints: 0, levelNumeric: 99 },
+    create: { userId: adminUser.id, balance: 0, currency: "KES" },
   });
 
   await prisma.faq.deleteMany({ where: { category: "seed" } });
   await prisma.faq.createMany({
     data: [
       {
-        question: "How do I activate my WRITERSNITE account?",
+        question: "How do I deposit on EliteBet?",
         answer:
-          "After registration, pay the one-time activation fee via Paystack (M-Pesa or Card), Stripe, or PayPal. Your account unlocks immediately after payment confirmation.",
+          "Go to Wallet or tap Deposit. Enter an amount (minimum KES 50) and pay via M-Pesa Paystack. Your balance updates after payment confirmation.",
         category: "seed",
         sortOrder: 1,
       },
       {
-        question: "How do withdrawals work?",
+        question: "Can I withdraw my balance?",
         answer:
-          "Request a payout from your wallet. Our team reviews fraud signals, then we release funds via Paystack, PayPal, or bank transfer where supported.",
+          "Withdrawals are not available on EliteBet. Deposited funds are used for simulation betting and entertainment only.",
         category: "seed",
         sortOrder: 2,
       },
     ],
   });
 
-  const sampleTitle = "Sample SEO Article (Internal QA)";
-  const existingJob = await prisma.job.findFirst({ where: { title: sampleTitle } });
-  if (!existingJob) {
-    await prisma.job.create({
-      data: {
-        title: sampleTitle,
-        description: "Seed job for local development. Replace in production admin workflows.",
-        category: JobCategory.ARTICLE_WRITING,
-        budget: 45,
-        currency: "USD",
-        status: JobStatus.OPEN,
-        featured: false,
-        sponsored: false,
-        createdById: adminUser.id,
-      },
-    });
-  }
-
   // eslint-disable-next-line no-console
-  console.log("Seed completed: roles, achievements, admin user, FAQ, sample job.");
+  console.log("Seed completed: roles, admin user, FAQ.");
 }
 
 main()

@@ -52,9 +52,9 @@ export default function ActivatePage() {
       <div className="flex flex-col items-center gap-4 py-12 text-center">
         <CheckCircle2 className="h-12 w-12 text-green-500" />
         <h1 className="text-2xl font-bold">Account activated</h1>
-        <p className="text-muted-foreground">You have full access to jobs and wallet.</p>
-        <Link href="/dashboard">
-          <Button>Go to dashboard</Button>
+        <p className="text-[#888888]">You have full access to EliteBet.</p>
+        <Link href="/">
+          <Button className="bg-[#00a651] text-[#ffffff]">Go to home</Button>
         </Link>
       </div>
     );
@@ -75,9 +75,9 @@ export default function ActivatePage() {
         <div className="mb-3 mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
           <CreditCard className="h-6 w-6 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Activate Your Account</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Pay the registration fee to unlock jobs, wallet, referrals, and withdrawals on WRITERSNITE.
+        <h1 className="text-2xl font-bold text-[#ffffff]">Activate Your Account</h1>
+        <p className="mt-1 text-sm text-[#888888]">
+          Pay the registration fee to unlock betting, wallet, and referrals on EliteBet.
         </p>
       </div>
 

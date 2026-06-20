@@ -7,7 +7,7 @@ const ACTIVATE_ROUTE = "/activate";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("writersnite_token")?.value;
+  const token = request.cookies.get("elitebet_token")?.value;
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   const isAuthPage = AUTH_ROUTES.includes(pathname);

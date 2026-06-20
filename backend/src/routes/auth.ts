@@ -29,7 +29,7 @@ async function sendOtpEmail(to: string, code: string) {
     await transporter.sendMail({
       from: env.EMAIL_USER,
       to,
-      subject: "Your WritersNite 2FA code",
+      subject: "Your EliteBet 2FA code",
       text: `Your verification code is: ${code}`,
     });
     return;
