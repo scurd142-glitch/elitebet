@@ -19,7 +19,7 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${SITE.name} — Kenya's ultimate simulation betting experience`,
+    default: `${SITE.name} — Kenya's premier betting platform`,
     template: `%s · ${SITE.name}`,
   },
   description: SITE.description,
@@ -44,12 +44,12 @@ export const metadata: Metadata = {
     locale: "en_KE",
     url: siteUrl,
     siteName: SITE.name,
-    title: `${SITE.name} — Simulation Betting Platform`,
+    title: `${SITE.name} — Premier Betting Platform`,
     description: SITE.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE.name} — Simulation Betting Platform`,
+    title: `${SITE.name} — Premier Betting Platform`,
     description: SITE.description,
   },
   robots: {

@@ -14,10 +14,10 @@ export const COLORS = {
 
 export const SITE = {
   name: "EliteBet",
-  tagline: "Kenya's ultimate simulation betting experience",
+  tagline: "Kenya's premier betting platform",
   company: "EliteBet",
   description:
-    "EliteBet is a simulation betting platform where you deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
+    "EliteBet is Kenya's premier betting platform. Deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://elitebet.co.ke",
   email: "hello@elitebet.co.ke",
   supportEmail: "support@elitebet.co.ke",

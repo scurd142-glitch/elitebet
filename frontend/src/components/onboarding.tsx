@@ -7,17 +7,17 @@ import { EliteBetLogo } from "@/components/ui/elitebet-logo";
 const slides = [
   {
     title: "Welcome to EliteBet",
-    description: "Kenya's ultimate simulation betting experience. Deposit via M-Pesa, play crash games, and bet on sports.",
+    description: "Kenya's premier betting platform. Deposit via M-Pesa, play crash games, and bet on sports.",
     icon: "🎮",
   },
   {
     title: "Play & Win",
-    description: "Try your luck with Aviator crash game, bet on live sports, or enjoy casino games. All balances are for gameplay only.",
+    description: "Try your luck with Aviator crash game, bet on live sports, or enjoy casino games. Win big and have fun!",
     icon: "🚀",
   },
   {
     title: "Get Started",
-    description: "Make your first deposit and get a 100% boost bonus. Remember, this is a simulation platform — play responsibly!",
+    description: "Make your first deposit and get a 100% boost bonus. Play responsibly and enjoy the game!",
     icon: "💰",
   },
 ];

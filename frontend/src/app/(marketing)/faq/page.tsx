@@ -9,7 +9,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is EliteBet a real betting platform?",
-    a: "No, EliteBet is a simulation betting platform for entertainment purposes only. All balances are virtual and cannot be withdrawn. This is a play-to-learn platform.",
+    a: "Yes, EliteBet is Kenya's premier betting platform. Deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
   },
   {
     q: "How does Aviator crash game work?",

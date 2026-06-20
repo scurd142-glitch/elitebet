@@ -97,13 +97,13 @@ export default function HomePage() {
               href={game.href}
               className="flex-shrink-0 flex flex-col items-center gap-2"
             >
-              <div className={`relative h-[120px] w-[120px] rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center`}>
+              <div className={`relative h-[80px] w-[80px] rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center`}>
                 {game.isNew && (
                   <span className="absolute -top-2 -right-2 bg-[#e63946] px-2 py-0.5 text-[10px] font-bold text-[#ffffff] rounded-full">
                     NEW
                   </span>
                 )}
-                <Gamepad2 className="h-10 w-10 text-white/80" />
+                <Gamepad2 className="h-8 w-8 text-white/80" />
               </div>
               <span className="text-xs text-[#ffffff]">{game.name}</span>
             </Link>

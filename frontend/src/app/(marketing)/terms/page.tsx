@@ -19,10 +19,10 @@ export default function TermsPage() {
           These Terms govern access to {SITE.name}. By creating an account or using the service, you agree to follow these Terms.
         </p>
         <p>
-          <strong className="text-[#ffffff]">Simulation betting.</strong> Display balances are for entertainment only and have no real cash-out value. Withdrawals are not available.
+          <strong className="text-[#ffffff]">Betting.</strong> All bets are final once placed. Please review your selections carefully before confirming.
         </p>
         <p>
-          <strong className="text-[#ffffff]">Deposits.</strong> Deposits are processed via Paystack/M-Pesa. Real funds belong to the platform operator.
+          <strong className="text-[#ffffff]">Deposits.</strong> Deposits are processed via Paystack/M-Pesa. Deposits are usually processed instantly.
         </p>
         <p>
           <strong className="text-[#ffffff]">Age requirement.</strong> You must be 18+ to use EliteBet.
