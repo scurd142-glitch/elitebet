@@ -15,6 +15,7 @@ import { userRouter } from "./routes/user.routes";
 import { contactRouter } from "./routes/contact.routes";
 import { ticketsRouter } from "./routes/tickets.routes";
 import { withdrawalsRouter } from "./routes/withdrawals.routes";
+import { aviatorRouter } from "./routes/aviator.routes";
 import { prisma } from "./lib/prisma";
 
 const logger = pino({
@@ -68,6 +69,7 @@ export function createApp(env: Env) {
   app.use("/api/user", userRouter);
   app.use("/api/contact", contactRouter);
   app.use("/api/tickets", ticketsRouter);
+  app.use("/api/aviator", aviatorRouter);
   app.use("/api/withdrawals", withdrawalsRouter);
 
   app.use((_req, res) => {
