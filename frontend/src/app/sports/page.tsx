@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Football, Clock, TrendingUp } from "lucide-react";
+import { Clock, TrendingUp, Trophy } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 

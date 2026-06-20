@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plane, Gamepad2, Dice1, Sparkles, Gift, ArrowRight } from "lucide-react";
 
+type QuickAccessItem = {
+  name: string;
+  icon: any;
+  color: string;
+  href?: string;
+};
+
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("Crash");
   const [winTicker, setWinTicker] = useState<string>("");
@@ -39,12 +46,12 @@ export default function HomePage() {
   }));
 
   const quickAccess = [
-    { name: "Aviator", icon: Plane, color: "bg-orange-500" },
-    { name: "Featured", icon: Sparkles, color: "bg-[#222222]" },
-    { name: "vFootball", icon: Gamepad2, color: "bg-[#222222]" },
-    { name: "Ligi Kuu", icon: Gamepad2, color: "bg-[#222222]" },
-    { name: "Soccer", icon: Gamepad2, color: "bg-[#222222]" },
-    { name: "50+", icon: Dice1, color: "bg-[#222222]" },
+    { name: "Aviator", icon: Plane, color: "bg-orange-500", href: "/games/aviator" },
+    { name: "Sports", icon: Gamepad2, color: "bg-[#222222]", href: "/sports" },
+    { name: "Casino", icon: Gamepad2, color: "bg-[#222222]", href: "/casino" },
+    { name: "Promotions", icon: Gift, color: "bg-[#222222]", href: "/promotions" },
+    { name: "My Bets", icon: Gamepad2, color: "bg-[#222222]", href: "/my-bets" },
+    { name: "FAQ", icon: Dice1, color: "bg-[#222222]", href: "/faq" },
   ];
 
   // Simulated win ticker
@@ -153,7 +160,7 @@ export default function HomePage() {
           {quickAccess.map((item, i) => (
             <Link
               key={i}
-              href={item.href}
+              href={item.href || "#"}
               className="flex-shrink-0 flex flex-col items-center gap-2"
             >
               <div className={`h-16 w-16 rounded-full ${item.color} flex items-center justify-center`}>
