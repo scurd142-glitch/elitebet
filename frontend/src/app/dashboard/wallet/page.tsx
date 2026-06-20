@@ -17,23 +17,35 @@ export default function WalletPage() {
       <div>
         <h1 className="font-heading text-3xl font-bold heading-gradient">Wallet</h1>
         <p className="mt-1 text-sm text-muted-foreground font-body">
-          Track earnings from completed jobs.
+          Manage your EliteBet balance. Deposits via M-Pesa.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="stat-card stat-card-green p-6">
-          <p className="relative z-10 text-sm text-muted-foreground">Available balance</p>
-          <p className="relative z-10 mt-2 text-3xl font-bold text-[#00C896] font-mono">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="stat-card stat-card-gold p-6">
+          <p className="relative z-10 text-sm text-muted-foreground">Main Balance</p>
+          <p className="relative z-10 mt-2 text-3xl font-bold text-[#f5c518] font-mono">
             KES {(wallet?.balance ?? 0).toFixed(2)}
           </p>
         </div>
-        <div className="stat-card stat-card-gold p-6">
-          <p className="relative z-10 text-sm text-muted-foreground">Total earned</p>
-          <p className="relative z-10 mt-2 text-3xl font-bold text-[#FFD700] font-mono">
-            KES {(wallet?.totalEarned ?? 0).toFixed(2)}
+        <div className="stat-card stat-card-purple p-6">
+          <p className="relative z-10 text-sm text-muted-foreground">Casino Balance</p>
+          <p className="relative z-10 mt-2 text-3xl font-bold text-[#9b59b6] font-mono">
+            KES {(wallet?.casinoBalance ?? 0).toFixed(2)}
           </p>
         </div>
+        <div className="stat-card stat-card-green p-6">
+          <p className="relative z-10 text-sm text-muted-foreground">Bonus Balance</p>
+          <p className="relative z-10 mt-2 text-3xl font-bold text-[#00a651] font-mono">
+            KES {(wallet?.bonusBalance ?? 0).toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-[#e63946] bg-[#e63946]/10 p-4">
+        <p className="text-sm font-semibold text-[#e63946]">
+          ⚠️ Withdrawals are not available on EliteBet. This is a simulation betting platform — balances are for gameplay only.
+        </p>
       </div>
 
       <section className="glass-premium rounded-2xl p-6">
@@ -55,7 +67,7 @@ export default function WalletPage() {
                 </div>
                 <p
                   className={`font-semibold font-mono ${
-                    t.amount >= 0 ? "text-[#00C896]" : "text-[#FF4444]"
+                    t.amount >= 0 ? "text-[#00a651]" : "text-[#e63946]"
                   }`}
                 >
                   {t.amount >= 0 ? "+" : ""}

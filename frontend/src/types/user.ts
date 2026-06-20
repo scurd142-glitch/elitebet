@@ -76,6 +76,8 @@ export type JobAssignmentItem = {
 
 export type WalletData = {
   balance: number;
+  casinoBalance: number;
+  bonusBalance: number;
   totalEarned: number;
   transactions: {
     id: string;
