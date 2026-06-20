@@ -153,7 +153,7 @@ export default function HomePage() {
           {quickAccess.map((item, i) => (
             <Link
               key={i}
-              href={item.name === "Aviator" ? "/games/aviator" : "#"}
+              href={item.href}
               className="flex-shrink-0 flex flex-col items-center gap-2"
             >
               <div className={`h-16 w-16 rounded-full ${item.color} flex items-center justify-center`}>

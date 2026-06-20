@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Radio, Ticket, Dices, ClipboardList } from "lucide-react";
+import { Home, Trophy, Ticket, Dices, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -14,7 +14,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/inplay", label: "Inplay", icon: Radio },
+  { href: "/sports", label: "Sports", icon: Trophy },
   { href: "/betslip", label: "Betslip", icon: Ticket, isCenter: true },
   { href: "/casino", label: "Casino", icon: Dices },
   { href: "/my-bets", label: "My Bets", icon: ClipboardList },
