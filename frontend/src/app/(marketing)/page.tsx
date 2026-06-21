@@ -30,11 +30,18 @@ export default function HomePage() {
     { icon: "💰", title: "Tax Free", subtitle: "All deposits" },
   ];
 
+  const winImages = [
+    "/images/wins/blackjack.svg",
+    "/images/wins/hotpepper.svg",
+    "/images/wins/drago.svg",
+    "/images/wins/virtual.svg",
+  ];
+
   const bigWins = Array.from({ length: 8 }, (_, i) => ({
     phone: `07X${Math.random().toString(36).substring(2, 5).toUpperCase()}XXX`,
     amount: Math.floor(Math.random() * 50000) + 5000,
     game: games[Math.floor(Math.random() * games.length)].name,
-    bgColor: games[Math.floor(Math.random() * games.length)].bgColor,
+    image: winImages[i % winImages.length],
   }));
 
   const quickAccess = [
@@ -155,7 +162,7 @@ export default function HomePage() {
               key={i}
               className="flex-shrink-0 w-[130px] h-[170px] rounded-xl bg-[#1e2530] overflow-hidden"
             >
-              <div className={`h-[100px] w-full bg-gradient-to-br ${win.gradient}`} />
+              <img src={win.image} alt={win.game} className="w-full h-[100px] object-cover rounded-t-xl" />
               <p className="px-2 mt-1 text-[11px] text-[#9aa0a6]">{win.phone}</p>
               <p className="px-2 text-[13px] font-bold text-[#00C853]">KES {win.amount.toLocaleString()}</p>
             </div>
