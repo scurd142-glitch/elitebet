@@ -9,7 +9,6 @@
     "shared"
   ],
   "scripts": {
-    "postinstall": "npm run build --workspace=@elitebet/shared",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
     "build:frontend": "npm run build --workspace=frontend",
