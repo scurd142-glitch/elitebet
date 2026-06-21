@@ -88,6 +88,19 @@ export type WalletData = {
   }[];
 };
 
+export type MyBetItem = {
+  id: string;
+  type: string;
+  gameType?: string;
+  selections: { match: string; selection: string; odds: number }[];
+  stake: number;
+  totalOdds: number;
+  potentialWin: number;
+  actualWin: number;
+  status: string;
+  createdAt: string;
+};
+
 export type ReferralData = {
   referralCode: string;
   referralLink: string;

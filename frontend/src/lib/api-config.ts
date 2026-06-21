@@ -24,3 +24,15 @@ export function apiUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return base ? `${base}${normalized}` : normalized;
 }
+
+export function getSocketUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
+    return "https://elitebet-ihmo.onrender.com";
+  }
+  if (process.env.NODE_ENV === "production") {
+    return "https://elitebet-ihmo.onrender.com";
+  }
+  return "http://localhost:4000";
+}

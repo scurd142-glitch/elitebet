@@ -8,6 +8,7 @@ export const userRouter = Router();
 
 userRouter.use(authMiddleware);
 
+userRouter.get("/account", asyncHandler(userController.getAccount));
 userRouter.get("/dashboard", requireActivated, asyncHandler(userController.getDashboard));
 userRouter.patch("/profile", asyncHandler(userController.updateProfile));
 userRouter.post("/change-password", asyncHandler(userController.changePassword));

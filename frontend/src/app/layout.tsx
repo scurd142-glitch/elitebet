@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { DepositProvider } from "@/components/providers/deposit-provider";
+import { DepositModal } from "@/components/payments/deposit-modal";
 import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "react-hot-toast";
 import { SITE } from "@/lib/constants";
@@ -102,9 +104,12 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
-            <OnboardingWrapper>
-              <AppShell>{children}</AppShell>
-            </OnboardingWrapper>
+            <DepositProvider>
+              <OnboardingWrapper>
+                <AppShell>{children}</AppShell>
+                <DepositModal />
+              </OnboardingWrapper>
+            </DepositProvider>
           </AuthProvider>
         </ThemeProvider>
         <Toaster

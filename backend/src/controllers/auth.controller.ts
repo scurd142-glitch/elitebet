@@ -140,6 +140,15 @@ export async function login(req: AuthRequest, res: Response) {
 
   await ensureWallet(user.id);
 
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      device: String(req.headers["user-agent"] ?? "").toLowerCase().includes("mobile") ? "Mobile" : "Desktop",
+      browser: String(req.headers["user-agent"] ?? "Unknown").slice(0, 200),
+      ipAddress: req.ip ?? null,
+    },
+  });
+
   const roleName = user.roles?.[0]?.role?.name === "ADMIN" ? "ADMIN" : "USER";
   const { token, expiresIn } = signToken(
     {

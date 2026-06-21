@@ -1,38 +1,51 @@
 import { prisma } from "../lib/prisma";
-import { broadcastMultiplier, broadcastRoundStart, broadcastCashout } from "../lib/socket";
+import { broadcastMultiplier, broadcastGamePhase } from "../lib/socket";
 import { Decimal } from "@prisma/client/runtime/library";
 
-// Provably fair crash point calculation
-function generateCrashPoint(): number {
-  return Math.max(1, (100 / (Math.random() * 100)) * 0.97);
-}
-
-// Simulated Kenyan names for fake players
 const KENYAN_NAMES = [
   "Kipchoge", "Wanjiku", "Ochieng", "Achieng", "Kipkorir",
   "Njeri", "Kamau", "Wanjiru", "Omondi", "Akinyi",
-  "Kipngeno", "Wambui", "Kiplagat", "Nyakio", "Kipkoech"
+  "Kipngeno", "Wambui", "Kiplagat", "Nyakio", "Kipkoech",
 ];
 
-let currentRound: any = null;
-let gameInterval: NodeJS.Timeout | null = null;
-let isFlying = false;
+export function generateCrashPoint(): number {
+  const r = Math.random();
+  if (r < 0.01) return 1.0;
+  const crash = Math.max(1.0, ((100 / (1 - r)) * 0.97) / 100);
+  return Math.round(crash * 100) / 100;
+}
+
+let currentRound: { id: string; crashPoint: number } | null = null;
+let gamePhase: "betting" | "flying" | "crashed" = "betting";
+let gameLoopRunning = false;
+let currentMultiplier = 1.0;
+
+export function getGameState() {
+  return {
+    phase: gamePhase,
+    roundId: currentRound?.id ?? null,
+    multiplier: currentMultiplier,
+    countdown: gamePhase === "betting" ? 5 : 0,
+  };
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function placeBet(userId: string, amount: number) {
-  // Check if user has enough balance
+  if (gamePhase !== "betting" || !currentRound) {
+    return { success: false, error: "Betting is closed for this round" };
+  }
+
   const wallet = await prisma.wallet.findUnique({ where: { userId } });
   if (!wallet || wallet.balance.lessThan(amount)) {
     return { success: false, error: "Insufficient balance" };
   }
 
-  // Deduct balance
   const newBalance = wallet.balance.minus(amount);
-  await prisma.wallet.update({
-    where: { userId },
-    data: { balance: newBalance },
-  });
+  await prisma.wallet.update({ where: { userId }, data: { balance: newBalance } });
 
-  // Create wallet transaction
   await prisma.walletTransaction.create({
     data: {
       walletId: wallet.id,
@@ -40,51 +53,48 @@ export async function placeBet(userId: string, amount: number) {
       reason: "BET",
       amount: new Decimal(amount),
       balanceAfter: newBalance,
+      actorUserId: userId,
       description: "Aviator bet",
     },
   });
 
-  // Create Aviator bet
   const bet = await prisma.aviatorBet.create({
     data: {
       userId,
-      roundId: currentRound?.id || "",
+      roundId: currentRound.id,
       stake: new Decimal(amount),
       status: "active",
     },
   });
 
-  return { success: true, bet };
+  return { success: true, bet: { id: bet.id, stake: amount, roundId: currentRound.id } };
 }
 
 export async function cashout(userId: string, betId: string, multiplier: number) {
+  if (gamePhase !== "flying") {
+    return { success: false, error: "Cannot cash out now" };
+  }
+
   const bet = await prisma.aviatorBet.findUnique({ where: { id: betId } });
   if (!bet || bet.userId !== userId || bet.status !== "active") {
     return { success: false, error: "Invalid bet" };
   }
 
   const winAmount = bet.stake.times(multiplier);
-  
-  // Update bet
+
   await prisma.aviatorBet.update({
     where: { id: betId },
     data: {
       cashoutMultiplier: multiplier,
-      winAmount: winAmount,
+      winAmount,
       status: "cashed_out",
     },
   });
 
-  // Add winnings to wallet
   const wallet = await prisma.wallet.findUnique({ where: { userId } });
   if (wallet) {
     const newBalance = wallet.balance.plus(winAmount);
-    await prisma.wallet.update({
-      where: { userId },
-      data: { balance: newBalance },
-    });
-
-    // Create transaction
+    await prisma.wallet.update({ where: { userId }, data: { balance: newBalance } });
     await prisma.walletTransaction.create({
       data: {
         walletId: wallet.id,
@@ -92,81 +102,79 @@ export async function cashout(userId: string, betId: string, multiplier: number)
         reason: "WIN",
         amount: winAmount,
         balanceAfter: newBalance,
-        description: "Aviator cashout",
+        actorUserId: userId,
+        description: `Aviator cashout @ ${multiplier.toFixed(2)}x`,
       },
     });
   }
 
-  broadcastCashout(userId, multiplier, Number(winAmount));
   return { success: true, winAmount: Number(winAmount) };
 }
 
 export async function getRoundHistory() {
-  const rounds = await prisma.aviatorRound.findMany({
+  return prisma.aviatorRound.findMany({
     orderBy: { createdAt: "desc" },
     take: 10,
   });
-  return rounds;
 }
 
 export function startGameLoop() {
-  if (gameInterval) return;
+  if (gameLoopRunning) return;
+  gameLoopRunning = true;
 
-  const runGame = async () => {
-    // Betting phase (5 seconds)
+  const runRound = async () => {
     const crashPoint = generateCrashPoint();
-    const round = await prisma.aviatorRound.create({
-      data: { crashPoint },
+    const round = await prisma.aviatorRound.create({ data: { crashPoint } });
+    currentRound = { id: round.id, crashPoint };
+    gamePhase = "betting";
+    currentMultiplier = 1.0;
+
+    broadcastGamePhase({ phase: "betting", roundId: round.id, countdown: 5, multiplier: 1.0 });
+
+    for (let c = 5; c > 0; c--) {
+      broadcastGamePhase({ phase: "betting", roundId: round.id, countdown: c, multiplier: 1.0 });
+      await sleep(1000);
+    }
+
+    gamePhase = "flying";
+    currentMultiplier = 1.0;
+    broadcastGamePhase({ phase: "flying", roundId: round.id, multiplier: 1.0 });
+
+    while (currentMultiplier < crashPoint) {
+      await sleep(100);
+      currentMultiplier = Math.round((currentMultiplier + 0.01) * 100) / 100;
+      broadcastMultiplier(currentMultiplier, "flying");
+    }
+
+    gamePhase = "crashed";
+    currentMultiplier = crashPoint;
+    broadcastMultiplier(crashPoint, "crashed");
+    broadcastGamePhase({ phase: "crashed", roundId: round.id, crashPoint, multiplier: crashPoint });
+
+    await prisma.aviatorBet.updateMany({
+      where: { roundId: round.id, status: "active" },
+      data: { status: "crashed" },
     });
-    currentRound = round;
 
-    broadcastRoundStart(crashPoint);
-
-    // Wait for betting phase
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    // Flying phase
-    isFlying = true;
-    let multiplier = 1.0;
-    
-    const flyInterval = setInterval(() => {
-      multiplier += 0.1;
-      broadcastMultiplier(multiplier, "flying");
-      
-      if (multiplier >= crashPoint) {
-        clearInterval(flyInterval);
-        isFlying = false;
-        broadcastMultiplier(crashPoint, "crashed");
-        
-        // Mark all active bets as crashed
-        prisma.aviatorBet.updateMany({
-          where: { roundId: round.id, status: "active" },
-          data: { status: "crashed" },
-        }).catch(console.error);
-      }
-    }, 100);
-
-    // Wait for next round
-    setTimeout(runGame, 3000);
+    await sleep(2000);
+    runRound();
   };
 
-  runGame();
-}
-
-export function stopGameLoop() {
-  if (gameInterval) {
-    clearInterval(gameInterval);
-    gameInterval = null;
-  }
+  runRound().catch((err) => {
+    console.error("Aviator game loop error:", err);
+    gameLoopRunning = false;
+  });
 }
 
 export function getFakePlayers() {
-  const players = [];
-  for (let i = 0; i < 8; i++) {
-    players.push({
-      name: KENYAN_NAMES[Math.floor(Math.random() * KENYAN_NAMES.length)],
-      amount: Math.floor(Math.random() * 5000) + 100,
-    });
-  }
-  return players;
+  return Array.from({ length: 12 }, () => ({
+    name: KENYAN_NAMES[Math.floor(Math.random() * KENYAN_NAMES.length)],
+    phone: `07${Math.floor(Math.random() * 9)}${Math.random().toString().slice(2, 5)}****${Math.floor(Math.random() * 900 + 100)}`,
+    amount: Math.floor(Math.random() * 5000) + 100,
+    cashoutMultiplier: Math.random() > 0.55 ? Number((Math.random() * 8 + 1.1).toFixed(2)) : null,
+    winAmount: 0,
+  })).map((p) => ({
+    ...p,
+    winAmount: p.cashoutMultiplier ? Math.round(p.amount * p.cashoutMultiplier) : 0,
+  }));
 }

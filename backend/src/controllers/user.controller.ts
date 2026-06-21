@@ -106,7 +106,35 @@ export async function markAllNotificationsRead(req: AuthRequest, res: Response) 
 
 export async function getActivity(req: AuthRequest, res: Response) {
   const userId = req.user!.sub;
-  // activity model not present in schema — return admin logs as safe placeholder
   const activities = await prisma.adminLog.findMany({ where: { actorId: userId }, orderBy: { createdAt: "desc" }, take: 30 });
   res.json({ success: true, data: { activities } });
+}
+
+export async function getAccount(req: AuthRequest, res: Response) {
+  const userId = req.user!.sub;
+
+  const [user, wallet, sessions] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+    prisma.wallet.findUnique({ where: { userId } }),
+    prisma.session.findMany({ where: { userId }, orderBy: { loginAt: "desc" }, take: 5 }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      user: toPublicUser(user),
+      wallet: {
+        balance: wallet ? toNumber(wallet.balance) : 0,
+        casinoBalance: wallet ? toNumber(wallet.casinoBalance) : 0,
+        bonusBalance: wallet ? toNumber(wallet.bonusBalance) : 0,
+      },
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        loginAt: s.loginAt.toISOString(),
+        device: s.device ?? "Unknown",
+        browser: s.browser ?? "Unknown",
+        ipAddress: s.ipAddress,
+      })),
+    },
+  });
 }

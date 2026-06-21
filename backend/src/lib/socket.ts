@@ -51,7 +51,13 @@ export function broadcastBetPlaced(userId: string, amount: number) {
   io.to("aviator").emit("bet-placed", { userId, amount });
 }
 
-export function broadcastCashout(userId: string, multiplier: number, amount: number) {
+export function broadcastGamePhase(payload: {
+  phase: "betting" | "flying" | "crashed";
+  roundId: string;
+  countdown?: number;
+  multiplier?: number;
+  crashPoint?: number;
+}) {
   const io = getIO();
-  io.to("aviator").emit("cashout", { userId, multiplier, amount });
+  io.to("aviator").emit("game-phase", payload);
 }

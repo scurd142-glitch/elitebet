@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell, Search, User } from "lucide-react";
 import { EliteBetLogo } from "@/components/ui/elitebet-logo";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useDeposit } from "@/components/providers/deposit-provider";
 
 function getInitials(name?: string) {
   if (!name) return "U";
@@ -17,6 +18,7 @@ function getInitials(name?: string) {
 
 export function AppHeader() {
   const { user, balance } = useAuth();
+  const { openDeposit } = useDeposit();
   const unreadCount = 0;
 
   return (
@@ -33,12 +35,13 @@ export function AppHeader() {
 
       <div className="flex items-center gap-1 sm:gap-2">
         <span className="text-xs font-semibold text-[#f5c518] sm:hidden">KES {balance.toFixed(2)}</span>
-        <Link
-          href="/wallet"
+        <button
+          type="button"
+          onClick={() => (user ? openDeposit() : window.location.assign("/login"))}
           className="rounded-md bg-[#00a651] px-3 py-1.5 text-xs font-semibold text-[#ffffff] sm:px-4 sm:text-sm"
         >
           Deposit
-        </Link>
+        </button>
         <Link
           href="/search"
           className="flex h-9 w-9 items-center justify-center rounded-full text-[#888888] hover:text-[#ffffff]"

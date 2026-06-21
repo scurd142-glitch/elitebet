@@ -11,6 +11,7 @@ import type {
   SupportTicketItem,
   ActivationConfig,
   ActivationPaymentItem,
+  MyBetItem,
 } from "@/types/user";
 
 import { apiUrl } from "@/lib/api-config";
@@ -179,21 +180,52 @@ export const api = {
   getWallet: () => request<WalletData>("/api/wallet"),
 
   initiateDeposit: (payload: { amount: number }) =>
-    request<{ authorization_url: string; reference: string }>(
+    request<{ authorization_url: string; reference: string; paymentId: string }>(
       "/api/payments/initialize",
       { method: "POST", body: JSON.stringify({ ...payload, type: "DEPOSIT" }) }
     ),
 
+  verifyDeposit: (reference: string) =>
+    request<{ reference: string; amount: number; type: string; balance: number }>(
+      `/api/payments/verify/${encodeURIComponent(reference)}`
+    ),
+
+  transferBalance: (payload: { amount: number; direction: "main_to_casino" | "casino_to_main" }) =>
+    request<{ balance: number; casinoBalance: number; bonusBalance: number }>(
+      "/api/wallet/transfer",
+      { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  getAccount: () =>
+    request<{
+      user: PublicUser & { isVerified?: boolean };
+      wallet: { balance: number; casinoBalance: number; bonusBalance: number };
+      sessions: { id: string; loginAt: string; device: string; browser: string; ipAddress: string | null }[];
+    }>("/api/user/account"),
+
+  getMyBets: () =>
+    request<{ bets: MyBetItem[] }>("/api/bets/mine"),
+
   // Aviator
   placeAviatorBet: (payload: { amount: number }) =>
-    request<{ bet: any }>("/api/aviator/bet", { method: "POST", body: JSON.stringify(payload) }),
+    request<{ id: string; stake: number; roundId: string }>("/api/aviator/bet", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   cashoutAviator: (payload: { betId: string; multiplier: number }) =>
-    request<{ winAmount: number }>("/api/aviator/cashout", { method: "POST", body: JSON.stringify(payload) }),
+    request<{ winAmount: number }>("/api/aviator/cashout", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
-  getAviatorHistory: () => request<{ history: any[] }>("/api/aviator/history"),
+  getAviatorHistory: () =>
+    request<{ history: { id: string; crashPoint: number; createdAt: string }[] }>("/api/aviator/history"),
 
-  getFakePlayers: () => request<{ players: any[] }>("/api/aviator/fake-players"),
+  getFakePlayers: () =>
+    request<{ players: { name: string; phone: string; amount: number; cashoutMultiplier: number | null; winAmount: number }[] }>(
+      "/api/aviator/fake-players"
+    ),
 
   getReferrals: () => request<ReferralData>("/api/wallet/referrals"),
 

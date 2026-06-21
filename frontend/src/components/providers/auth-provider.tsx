@@ -56,8 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const res = await api.getWallet();
-    if (res.success && res.data?.balance) {
-      setBalance(Number(res.data.balance));
+    if (res.success && res.data) {
+      setBalance(Number(res.data.balance ?? 0));
     }
   }, []);
 
@@ -94,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAuthToken(res.data.token, remember);
       setUser(res.data.user);
+      await refreshBalance();
       const dest =
         res.data.user.role === "ADMIN"
           ? "/admin"
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push(dest);
       return null;
     },
-    [router]
+    [router, refreshBalance]
   );
 
   const register = useCallback(
@@ -121,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAuthToken(res.data.token, false);
       setUser(res.data.user);
+      await refreshBalance();
       const dest =
         res.data.user.role === "ADMIN"
           ? "/admin"
@@ -130,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push(dest);
       return null;
     },
-    [router]
+    [router, refreshBalance]
   );
 
   const logout = useCallback(async () => {
