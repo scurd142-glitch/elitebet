@@ -34,4 +34,4 @@ services:
       - key: EMAIL_PASS
         sync: false
       - key: CORS_ORIGIN
-        value: https://elitebet-frontend-6k6q.vercel.app
+        value: https://elitebet-frontend.vercel.app

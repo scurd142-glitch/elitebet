@@ -18,7 +18,7 @@ export const SITE = {
   company: "EliteBet",
   description:
     "EliteBet is Kenya's premier betting platform. Deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "https://elitebet.co.ke",
+  url: process.env.NEXT_PUBLIC_APP_URL ?? "https://elitebet-frontend.vercel.app",
   email: "hello@elitebet.co.ke",
   supportEmail: "support@elitebet.co.ke",
   version: "v1.0.0",
