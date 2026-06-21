@@ -1,36 +1,37 @@
 services:
   - type: web
-    name: writersnite-api
+    name: elitebet-backend
     runtime: node
     plan: free
-    buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && npm start
+    buildCommand: npm install && npm run build --workspace=backend && npm run db:generate --workspace=backend
+    startCommand: cd backend && npx prisma migrate deploy && npm start
+    healthCheckPath: /health
     envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: CLIENT_URL
-        value: https://writersnite.vercel.app
-      - key: ADMIN_EMAILS
-        value: scurd142@gmail.com
-      - key: SITE_URL
-        value: https://writersnite.vercel.app
-      - key: PORT
-        value: 4000
-      - key: NODE_ENV
-        value: production
       - key: PAYSTACK_SECRET_KEY
         sync: false
       - key: PAYSTACK_PUBLIC_KEY
         sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
       - key: EMAIL_HOST
-        value: smtp.gmail.com
+        sync: false
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
         sync: false
-      - key: FRONTEND_URL
-        value: https://writersnite.vercel.app
-      - key: CORS_ORIGIN
-        value: https://writersnite.vercel.app,http://localhost:3000

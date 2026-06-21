@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { apiUrl } from "@/lib/api-config";
 
 type Props = {
   email: string;
@@ -12,7 +13,7 @@ type Props = {
 export default function PaystackButton({ email, amount, currency = "KES", onSuccess, className = "" }: Props) {
   const handleClick = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/initialize`, {
+      const res = await fetch(apiUrl("/api/payments/initialize"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, amount, currency }),

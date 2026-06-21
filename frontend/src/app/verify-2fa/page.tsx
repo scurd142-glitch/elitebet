@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { apiUrl } from "@/lib/api-config";
 
 export default function Verify2FAPage() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function Verify2FAPage() {
     setMessage(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-2fa`, {
+      const res = await fetch(apiUrl("/api/auth/verify-2fa"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),

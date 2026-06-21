@@ -1,9 +1,3 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://elitebet-api.onrender.com",
-    "NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY": "pk_live_91b3cfe5c6d381c60b63d7f7a44d3d9c77dc4404"
-  }
+  "framework": "nextjs"
 }

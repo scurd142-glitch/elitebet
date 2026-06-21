@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { EliteBetLogo } from "@/components/ui/elitebet-logo";
+import { apiUrl } from "@/lib/api-config";
 
 const inputClass =
   "w-full rounded-lg border border-[#333333] bg-[#222222] px-4 py-3 text-sm text-[#ffffff] focus:border-[#00a651] focus:outline-none focus:ring-1 focus:ring-[#00a651]";
@@ -24,8 +25,7 @@ export default function RegisterPage() {
     setMessage(null);
 
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
-      const regRes = await fetch(`${apiUrl}/api/auth/register`, {
+      const regRes = await fetch(apiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

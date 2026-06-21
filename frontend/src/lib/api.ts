@@ -13,7 +13,7 @@ import type {
   ActivationPaymentItem,
 } from "@/types/user";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
+import { apiUrl } from "@/lib/api-config";
 
 type ApiResult<T> = {
   success: boolean;
@@ -41,7 +41,7 @@ async function request<T>(
   }
 
   try {
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(apiUrl(path), {
       ...options,
       headers,
     });
