@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { io, type Socket } from "socket.io-client";
-import { Settings, MessageSquare } from "lucide-react";
+import { ArrowLeft, Wallet, Menu, MessageSquare, Minus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/providers/auth-provider";
 import { api } from "@/lib/api";
@@ -16,10 +17,9 @@ type ActiveBet = { id: string; stake: number };
 const QUICK_AMOUNTS = [100, 200, 500, 20000];
 
 function historyColor(point: number) {
-  if (point >= 20) return "bg-[#f5c518] text-[#111111]";
-  if (point >= 5) return "bg-[#00a651] text-[#ffffff]";
-  if (point >= 2) return "bg-[#9b59b6] text-[#ffffff]";
-  return "bg-[#e63946] text-[#ffffff]";
+  if (point >= 10) return "text-[#00C853]";
+  if (point >= 2) return "text-[#a855f7]";
+  return "text-[#ef4444]";
 }
 
 export default function AviatorPage() {
@@ -53,16 +53,20 @@ export default function AviatorPage() {
     const cx = w / 2;
     const cy = h / 2;
 
-    ctx.fillStyle = crashed && flashRef.current ? "#3a1111" : "#111111";
+    // Deep dark purple-black background
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) / 2);
+    gradient.addColorStop(0, "#1a0030");
+    gradient.addColorStop(1, "#0a0014");
+    ctx.fillStyle = crashed && flashRef.current ? "#3a1111" : gradient;
     ctx.fillRect(0, 0, w, h);
 
-    // Starburst
-    ctx.strokeStyle = "#1c1c1c";
+    // Radial sunray lines from bottom-left
+    ctx.strokeStyle = "#2a1a4a";
     ctx.lineWidth = 1;
-    for (let i = 0; i < 360; i += 12) {
+    for (let i = 0; i < 360; i += 15) {
       const angle = (i * Math.PI) / 180;
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
+      ctx.moveTo(0, h);
       ctx.lineTo(cx + Math.cos(angle) * w, cy + Math.sin(angle) * h);
       ctx.stroke();
     }
@@ -73,11 +77,33 @@ export default function AviatorPage() {
     const endX = w - 60;
     const endY = 60;
 
-    // Red curve trail
+    // Pink/red gradient fill under curve
     if (mult > 1) {
       ctx.beginPath();
-      ctx.strokeStyle = crashed ? "#e63946" : "#ff4d6d";
+      ctx.moveTo(startX, startY);
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * progress;
+        const cp = Math.pow(t, 0.55);
+        const x = startX + (endX - startX) * cp;
+        const y = startY - (startY - endY) * cp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(endX, startY);
+      ctx.closePath();
+      const fillGradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      fillGradient.addColorStop(0, "rgba(255,45,85,0.3)");
+      fillGradient.addColorStop(1, "rgba(255,45,85,0.0)");
+      ctx.fillStyle = fillGradient;
+      ctx.fill();
+    }
+
+    // Animated flight line
+    if (mult > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = crashed ? "#ef4444" : "#ff2d55";
       ctx.lineWidth = 3;
+      ctx.shadowColor = "#ff2d55";
+      ctx.shadowBlur = 10;
       ctx.moveTo(startX, startY);
       for (let i = 0; i <= 100; i++) {
         const t = (i / 100) * progress;
@@ -87,42 +113,49 @@ export default function AviatorPage() {
         ctx.lineTo(x, y);
       }
       ctx.stroke();
-    }
+      ctx.shadowBlur = 0;
 
-    // Plane position
-    if (!crashed || mult <= 1) {
+      // Arrowhead at tip
       const cp = Math.pow(progress, 0.55);
       const planeX = startX + (endX - startX) * cp;
       const planeY = startY - (startY - endY) * cp;
-      const angle = -0.4 - progress * 0.3;
+      const angle = Math.atan2(endY - startY, endX - startX);
 
       ctx.save();
       ctx.translate(planeX, planeY);
       ctx.rotate(angle);
-      ctx.fillStyle = "#e63946";
+      ctx.fillStyle = "#ff2d55";
       ctx.beginPath();
-      ctx.moveTo(0, -12);
-      ctx.lineTo(28, 0);
-      ctx.lineTo(0, 12);
-      ctx.lineTo(6, 0);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-12, -6);
+      ctx.lineTo(-12, 6);
       ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = "#ff6b9d";
-      ctx.beginPath();
-      ctx.ellipse(14, 0, 18, 6, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
 
-    ctx.fillStyle = crashed ? "#e63946" : "#ffffff";
-    ctx.font = "bold 56px Inter, Arial";
+    // Multiplier text
+    ctx.fillStyle = crashed ? "#ef4444" : "#ffffff";
+    ctx.font = "bold 72px Inter, Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgba(255,255,255,0.3)";
+    ctx.shadowBlur = 20;
     ctx.fillText(`${mult.toFixed(2)}x`, cx, cy - 20);
+    ctx.shadowBlur = 0;
 
-    if (crashed) {
-      ctx.font = "bold 28px Inter, Arial";
-      ctx.fillText(`CRASHED! ${mult.toFixed(2)}x`, cx, cy + 36);
+    // Player avatars bottom-right
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "13px Inter, Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("2,656", w - 80, h - 30);
+    
+    // Draw 3 overlapping circles
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(w - 30 - (i * 20), h - 30, 14, 0, Math.PI * 2);
+      ctx.fillStyle = i === 0 ? "#ff2d55" : i === 1 ? "#a855f7" : "#00C853";
+      ctx.fill();
     }
   }, []);
 
@@ -241,116 +274,151 @@ export default function AviatorPage() {
     const setAmount = panel === 1 ? setBet1Amount : setBet2Amount;
     const activeBet = panel === 1 ? activeBet1 : activeBet2;
 
-    let buttonLabel = `Bet ${amount.toFixed(2)} KES`;
-    let buttonClass = "bg-[#00a651] text-[#ffffff] hover:opacity-90";
+    let buttonLabel = `Bet`;
+    let buttonSubLabel = `${amount.toFixed(2)} KES`;
+    let buttonClass = "bg-[#00C853] text-[#ffffff] hover:opacity-90";
     let buttonAction: () => void = () => { void placeBet(panel); };
     let disabled = false;
 
     if (phase === "flying" && activeBet) {
-      buttonLabel = `Cash Out ${(activeBet.stake * multiplier).toFixed(2)} KES`;
-      buttonClass = "bg-[#f5c518] text-[#111111] hover:opacity-90";
+      buttonLabel = "Cash Out";
+      buttonSubLabel = `${(activeBet.stake * multiplier).toFixed(2)} KES`;
+      buttonClass = "bg-[#f5a623] text-[#ffffff] hover:opacity-90";
       buttonAction = () => { void cashout(panel); };
     } else if (phase !== "betting" || activeBet) {
-      buttonLabel = phase === "crashed" ? "Next Round" : activeBet ? "Bet Placed" : "Betting Closed";
-      buttonClass = "bg-[#333333] text-[#888888]";
+      buttonLabel = phase === "crashed" ? "Next Round" : activeBet ? "Bet Placed" : "Wait";
+      buttonSubLabel = "";
+      buttonClass = "bg-[#2d3448] text-[#6b7280]";
       disabled = true;
     }
 
     return (
-      <div className="rounded-xl border border-[#333333] bg-[#222222] p-4">
-        <p className="mb-2 text-xs font-semibold text-[#888888]">Bet #{panel}</p>
-        <div className="mb-3 flex items-center justify-between">
-          <button type="button" onClick={() => setAmount(Math.max(10, amount - 50))} className="h-10 w-10 rounded-lg bg-[#333333] font-bold text-[#ffffff]">−</button>
-          <div className="font-mono text-2xl font-bold text-[#f5c518]">{amount}</div>
-          <button type="button" onClick={() => setAmount(amount + 50)} className="h-10 w-10 rounded-lg bg-[#333333] font-bold text-[#ffffff]">+</button>
+      <div className="rounded-xl border border-[#1e2530] bg-[#1a1f2e] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex rounded-lg bg-[#252b3d] p-1">
+            <button className="px-3 py-1 text-sm font-semibold rounded-md bg-[#3d4460] text-[#ffffff]">Bet</button>
+            <button className="px-3 py-1 text-sm font-semibold rounded-md text-[#6b7280]">Auto</button>
+          </div>
+          {panel === 2 && (
+            <button type="button" onClick={() => setBet2Enabled(false)} className="h-7 w-7 rounded-md bg-[#2d3448] flex items-center justify-center">
+              <Minus className="h-4 w-4 text-[#6b7280]" />
+            </button>
+          )}
         </div>
-        <div className="mb-3 flex gap-2">
-          {QUICK_AMOUNTS.map((q) => (
-            <button key={q} type="button" onClick={() => setAmount(q)} className="flex-1 rounded bg-[#333333] py-1 text-xs font-semibold text-[#ffffff]">
+        
+        <div className="mb-3 flex items-center justify-between">
+          <button type="button" onClick={() => setAmount(Math.max(10, amount - 50))} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-xl">−</button>
+          <div className="font-mono text-2xl font-bold text-[#ffffff]">{amount}</div>
+          <button type="button" onClick={() => setAmount(amount + 50)} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-xl">+</button>
+        </div>
+        
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          {QUICK_AMOUNTS.slice(0, 4).map((q) => (
+            <button key={q} type="button" onClick={() => setAmount(q)} className="rounded-lg bg-[#2d3448] py-2 text-sm font-semibold text-[#6b7280]">
               {q >= 1000 ? `${q / 1000}K` : q}
             </button>
           ))}
         </div>
-        <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full rounded-lg py-3 font-bold ${buttonClass} disabled:opacity-60`}>
-          {buttonLabel}
+        
+        <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full h-19 rounded-xl py-4 font-bold ${buttonClass} disabled:opacity-60`}>
+          <div className="text-lg">{buttonLabel}</div>
+          {buttonSubLabel && <div className="text-xl">{buttonSubLabel}</div>}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#111111] pb-20">
-      <div className="flex items-center justify-between border-b border-[#333333] bg-[#1a1a1a] px-4 py-2">
-        <span className="text-xl font-bold italic text-[#e63946]">Aviator</span>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-[#f5c518]">KES {balance.toFixed(2)}</span>
-          <Settings className="h-5 w-5 text-[#888888]" />
-          <MessageSquare className="h-5 w-5 text-[#888888]" />
+    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20">
+      {/* PAGE HEADER */}
+      <header className="flex h-[56px] items-center justify-between bg-[#0d1117] px-4">
+        <Link href="/" className="flex items-center gap-[6px]">
+          <ArrowLeft className="h-5 w-5 text-[#ffffff]" />
+          <span className="text-[15px] text-[#ffffff]">Back</span>
+        </Link>
+        <span className="text-[16px] font-bold text-[#ffffff]">Aviator</span>
+        <button className="flex h-10 items-center gap-2 rounded-full bg-[#00C853] px-5 text-[15px] font-bold text-[#ffffff]">
+          <Wallet className="h-4 w-4" />
+          Deposit
+        </button>
+      </header>
+
+      {/* AVIATOR SUBHEADER */}
+      <div className="flex h-[48px] items-center justify-between px-4">
+        <span className="text-[24px] font-black italic text-[#ff2d55]">Aviator</span>
+        <div className="flex items-center gap-[14px]">
+          <span className="font-bold text-[#00C853]">{balance.toFixed(2)} KES</span>
+          <Menu className="h-[22px] w-[22px] text-[#9aa0a6]" />
+          <MessageSquare className="h-[22px] w-[22px] text-[#9aa0a6]" />
         </div>
       </div>
 
-      {/* Round history — top bar */}
-      <div className="flex gap-2 overflow-x-auto border-b border-[#333333] bg-[#1a1a1a] px-3 py-2">
+      {/* MULTIPLIER HISTORY ROW */}
+      <div className="flex h-[40px] items-center gap-[18px] overflow-x-auto px-3 py-1">
         {history.map((point, i) => (
-          <span key={`${point}-${i}`} className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${historyColor(point)}`}>
+          <span key={`${point}-${i}`} className={`shrink-0 text-[14px] font-extrabold ${historyColor(point)}`}>
             {point.toFixed(2)}x
           </span>
         ))}
+        <button className="h-7 w-7 shrink-0 rounded bg-[#2d3448] text-[#6b7280]">...</button>
       </div>
 
-      <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-1.5">
-        <span className="rounded bg-[#00a651] px-2 py-0.5 text-[10px] font-bold text-[#ffffff]">LIVE</span>
-        <span className="text-xs text-[#888888]">{roundId ? `Round ${roundId.slice(-6)}` : "Connecting…"}</span>
+      {/* LIVE INDICATOR */}
+      <div className="flex h-[28px] items-center justify-between px-3">
+        <span className="rounded bg-[#00C853] px-2 py-0.5 text-[11px] font-bold text-[#ffffff]">LIVE</span>
+        <span className="text-[11px] text-[#6b7280]">{roundId ? `Round ${roundId.slice(-6)}` : "Connecting…"}</span>
       </div>
 
-      {/* Canvas — compact */}
-      <div className="relative" style={{ height: "42vh" }}>
+      {/* GAME CANVAS */}
+      <div className="relative" style={{ height: "300px" }}>
         <canvas ref={canvasRef} className="h-full w-full" />
         {phase === "betting" && countdown > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#111111]/40">
-            <span className="text-6xl font-bold text-[#f5c518]">{countdown}</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0a0014]/40">
+            <span className="text-6xl font-bold text-[#f5a623]">{countdown}</span>
           </div>
         )}
       </div>
 
-      {/* Betting panels */}
-      <div className="space-y-3 border-t border-[#333333] bg-[#1a1a1a] p-3">
+      {/* BET PANEL */}
+      <div className="space-y-3 border-t border-[#1e2530] bg-[#1a1f2e] p-4">
         {renderBetPanel(1)}
         {bet2Enabled ? renderBetPanel(2) : (
-          <button type="button" onClick={() => setBet2Enabled(true)} className="w-full rounded-lg border border-dashed border-[#333333] py-3 text-sm font-semibold text-[#888888]">
+          <button type="button" onClick={() => setBet2Enabled(true)} className="w-full rounded-xl border border-dashed border-[#2d3448] py-3 text-sm font-semibold text-[#6b7280]">
             + Add Bet #2
           </button>
         )}
       </div>
 
-      {/* Players panel */}
-      <div className="border-t border-[#333333] bg-[#1a1a1a] p-3">
-        <div className="mb-3 flex gap-4">
-          {(["all", "previous", "top"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setPlayerTab(tab)}
-              className={`text-xs font-semibold capitalize ${playerTab === tab ? "text-[#00a651]" : "text-[#888888]"}`}
-            >
-              {tab === "all" ? "All Bets" : tab}
-            </button>
-          ))}
-        </div>
-        <div className="max-h-40 space-y-2 overflow-y-auto">
+      {/* BOTTOM TABS */}
+      <div className="flex h-[48px] items-center gap-6 border-t border-[#1e2530] bg-[#0d1117] px-4">
+        {(["all", "previous", "top"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setPlayerTab(tab)}
+            className={`text-sm font-semibold ${playerTab === tab ? "text-[#00C853]" : "text-[#6b7280]"}`}
+          >
+            {tab === "all" ? "All Bets" : tab}
+          </button>
+        ))}
+      </div>
+
+      {/* PLAYERS PANEL */}
+      <div className="flex-1 overflow-y-auto bg-[#0d1117] p-4">
+        <div className="space-y-2">
           {players.map((p, i) => (
             <div key={i} className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#333333] text-[10px] font-bold text-[#ffffff]">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2d3448] text-[10px] font-bold text-[#ffffff]">
                   {p.name?.[0] ?? "P"}
                 </span>
                 <span className="text-[#ffffff]">{p.phone}</span>
               </div>
-              <span className="text-[#888888]">KES {p.amount}</span>
-              <span className={p.cashoutMultiplier ? "text-[#00a651]" : "text-[#888888]"}>
+              <span className="text-[#6b7280]">KES {p.amount}</span>
+              <span className={p.cashoutMultiplier ? "text-[#00C853]" : "text-[#6b7280]"}>
                 {p.cashoutMultiplier ? `${p.cashoutMultiplier}x` : "—"}
               </span>
-              <span className="text-[#00a651]">{p.winAmount ? `KES ${p.winAmount}` : ""}</span>
+              <span className="text-[#00C853]">{p.winAmount ? `KES ${p.winAmount}` : ""}</span>
             </div>
           ))}
         </div>

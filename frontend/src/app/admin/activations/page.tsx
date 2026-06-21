@@ -43,9 +43,9 @@ export default function AdminActivationsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-3xl font-bold heading-gradient">M-Pesa activations</h1>
+          <h1 className="font-heading text-3xl font-bold heading-gradient">Payment activations</h1>
           <p className="text-sm text-muted-foreground font-body">
-            Verify KES 400 payments to paybill 0140050678
+            Verify KES 400 payments
           </p>
         </div>
         <div className="flex gap-2">
@@ -95,7 +95,7 @@ export default function AdminActivationsPage() {
               </div>
               <div className="grid gap-2 text-sm sm:grid-cols-2">
                 <p>
-                  <span className="text-muted-foreground">M-Pesa code: </span>
+                  <span className="text-muted-foreground">Transaction code: </span>
                   <span className="font-mono">{p.transactionCode}</span>
                 </p>
                 <p>

@@ -4,12 +4,12 @@ import { SITE } from "@/lib/constants";
 
 const FAQ_ITEMS = [
   {
-    q: "How do I deposit money into my EliteBet account?",
-    a: "You can deposit money via M-Pesa. Go to the Wallet page, click on Deposit, enter the amount, and follow the M-Pesa payment instructions. Deposits are usually processed instantly.",
+    q: "How do I deposit money into my NiteBet account?",
+    a: "You can deposit money via Paystack. Go to the Wallet page, click on Deposit, enter the amount, and follow the payment instructions. Deposits are usually processed instantly.",
   },
   {
-    q: "Is EliteBet a real betting platform?",
-    a: "Yes, EliteBet is Kenya's premier betting platform. Deposit via M-Pesa, play crash games, bet on sports, and enjoy casino entertainment.",
+    q: "Is NiteBet a real betting platform?",
+    a: "Yes, NiteBet is Kenya's premier betting platform. Play crash games, bet on sports, and enjoy casino entertainment.",
   },
   {
     q: "How does Aviator crash game work?",
@@ -54,17 +54,17 @@ export default function FaqPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-[#ffffff]">FAQ</h1>
-      <p className="mt-2 text-[#888888]">Common questions about deposits, betting, and your account.</p>
+      <p className="mt-2 text-[#6b7280]">Common questions about deposits, betting, and your account.</p>
       <dl className="mt-8 space-y-6">
         {FAQ_ITEMS.map((item) => (
-          <div key={item.q} className="card-surface p-4">
-            <dt className="font-semibold text-[#00a651]">{item.q}</dt>
-            <dd className="mt-2 text-sm leading-relaxed text-[#888888]">{item.a}</dd>
+          <div key={item.q} className="rounded-xl border border-[#1e2530] bg-[#1a1f2e] p-4">
+            <dt className="font-semibold text-[#00C853]">{item.q}</dt>
+            <dd className="mt-2 text-sm leading-relaxed text-[#6b7280]">{item.a}</dd>
           </div>
         ))}
       </dl>
       <p className="mt-8">
-        <Link href="/" className="text-[#f5c518] hover:underline">
+        <Link href="/" className="text-[#f5a623] hover:underline">
           ← Back to home
         </Link>
       </p>

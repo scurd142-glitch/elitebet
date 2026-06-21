@@ -1,224 +1,225 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Clock, TrendingUp, Trophy } from "lucide-react";
-import { api } from "@/lib/api";
+import { ArrowLeft, Clock, Wallet, Search, X } from "lucide-react";
+import { getOdds, type Match } from "@/lib/odds-api";
 import { useAuth } from "@/components/providers/auth-provider";
 
-const MATCHES = [
-  {
-    id: "1",
-    league: "Ligi Kuu",
-    homeTeam: "Gor Mahia",
-    awayTeam: "AFC Leopards",
-    homeOdds: 2.5,
-    drawOdds: 3.2,
-    awayOdds: 2.8,
-    startTime: "2024-06-21T15:00:00",
-    status: "upcoming",
-  },
-  {
-    id: "2",
-    league: "Ligi Kuu",
-    homeTeam: "Tusker FC",
-    awayTeam: "KCB",
-    homeOdds: 1.8,
-    drawOdds: 3.5,
-    awayOdds: 4.2,
-    startTime: "2024-06-21T18:00:00",
-    status: "upcoming",
-  },
-  {
-    id: "3",
-    league: "English Premier League",
-    homeTeam: "Manchester United",
-    awayTeam: "Liverpool",
-    homeOdds: 2.1,
-    drawOdds: 3.4,
-    awayOdds: 3.3,
-    startTime: "2024-06-22T17:00:00",
-    status: "upcoming",
-  },
-  {
-    id: "4",
-    league: "La Liga",
-    homeTeam: "Real Madrid",
-    awayTeam: "Barcelona",
-    homeOdds: 2.3,
-    drawOdds: 3.2,
-    awayOdds: 3.1,
-    startTime: "2024-06-22T20:00:00",
-    status: "upcoming",
-  },
-  {
-    id: "5",
-    league: "Serie A",
-    homeTeam: "Juventus",
-    awayTeam: "AC Milan",
-    homeOdds: 2.0,
-    drawOdds: 3.3,
-    awayOdds: 3.7,
-    startTime: "2024-06-23T19:00:00",
-    status: "upcoming",
-  },
-];
-
 export default function SportsPage() {
-  const { user } = useAuth();
+  const { user, balance } = useAuth();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedBets, setSelectedBets] = useState<any[]>([]);
+  const [stake, setStake] = useState(100);
 
-  const handleSelectBet = (matchId: string, selection: string, odds: number) => {
-    const match = MATCHES.find((m) => m.id === matchId);
-    if (!match) return;
+  useEffect(() => {
+    async function loadOdds() {
+      try {
+        const data = await getOdds("soccer_epl");
+        setMatches(data);
+      } catch (error) {
+        console.error("Failed to load odds:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOdds();
+  }, []);
 
-    const existingIndex = selectedBets.findIndex((b) => b.matchId === matchId);
+  const handleSelectBet = (match: Match, selection: string, odds: number) => {
+    const existingIndex = selectedBets.findIndex((b) => b.match.id === match.id);
     if (existingIndex >= 0) {
       const updated = [...selectedBets];
-      updated[existingIndex] = { matchId, selection, odds, match };
+      updated[existingIndex] = { match, selection, odds };
       setSelectedBets(updated);
     } else {
-      setSelectedBets([...selectedBets, { matchId, selection, odds, match }]);
+      setSelectedBets([...selectedBets, { match, selection, odds }]);
     }
   };
 
   const handleRemoveBet = (matchId: string) => {
-    setSelectedBets(selectedBets.filter((b) => b.matchId !== matchId));
+    setSelectedBets(selectedBets.filter((b) => b.match.id !== matchId));
+  };
+
+  const calculateTotalOdds = () => {
+    if (selectedBets.length === 0) return 1;
+    return selectedBets.reduce((acc, bet) => acc * bet.odds, 1);
   };
 
   const calculatePotentialWin = () => {
-    if (selectedBets.length === 0) return 0;
-    const totalOdds = selectedBets.reduce((acc, bet) => acc * bet.odds, 1);
-    return totalOdds * 100; // Assuming 100 KES stake
+    return calculateTotalOdds() * stake;
   };
 
-  return (
-    <div className="min-h-screen bg-[#111111] pb-24">
-      <div className="mx-auto max-w-4xl space-y-4 p-4">
-        <h1 className="text-2xl font-bold text-[#f5c518]">Sports Betting</h1>
+  const getOddsForSelection = (match: Match, selection: string) => {
+    const bookmaker = match.bookmakers[0];
+    const market = bookmaker?.markets.find((m) => m.key === "h2h");
+    const outcome = market?.outcomes.find((o) => o.name === selection);
+    return outcome?.price || 0;
+  };
 
-        {/* Match List */}
-        <div className="space-y-3">
-          {MATCHES.map((match) => (
-            <div key={match.id} className="rounded-xl border border-[#333333] bg-[#1a1a1a] p-4">
+  const isSelected = (matchId: string, selection: string) => {
+    return selectedBets.some((b) => b.match.id === matchId && b.selection === selection);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0e1a]">
+        <div className="text-[#6b7280]">Loading odds...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-24">
+      {/* PAGE HEADER */}
+      <header className="flex h-[56px] items-center justify-between bg-[#0d1117] px-4">
+        <Link href="/" className="flex items-center gap-[6px]">
+          <ArrowLeft className="h-5 w-5 text-[#ffffff]" />
+          <span className="text-[15px] text-[#ffffff]">Back</span>
+        </Link>
+        <span className="text-[16px] font-bold text-[#ffffff]">Sports</span>
+        <div className="flex items-center gap-4">
+          <Search className="h-6 w-6 text-[#ffffff]" />
+          <span className="font-bold text-[#00C853]">{balance.toFixed(2)} KES</span>
+          <Wallet className="h-6 w-6 text-[#ffffff]" />
+        </div>
+      </header>
+
+      {/* SPORTS TABS */}
+      <div className="flex h-[44px] gap-2 overflow-x-auto border-b border-[#1e2530] px-4 py-3">
+        {["Soccer", "Basketball", "Tennis", "Cricket"].map((sport) => (
+          <button
+            key={sport}
+            className={`h-8 whitespace-nowrap rounded-full px-[14px] text-[13px] font-semibold ${
+              sport === "Soccer" ? "bg-[#ffffff] text-[#000000]" : "bg-[#1e2530] text-[#9aa0a6]"
+            }`}
+          >
+            {sport}
+          </button>
+        ))}
+      </div>
+
+      {/* MATCH LIST */}
+      <div className="flex-1 space-y-3 p-4">
+        {matches.map((match) => {
+          const bookmaker = match.bookmakers[0];
+          const market = bookmaker?.markets.find((m) => m.key === "h2h");
+          const outcomes = market?.outcomes || [];
+          
+          return (
+            <div key={match.id} className="rounded-xl border border-[#1e2530] bg-[#1a1f2e] p-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#00a651]">{match.league}</span>
-                <div className="flex items-center gap-1 text-xs text-[#888888]">
+                <span className="text-xs font-semibold text-[#00C853]">{match.sport_title}</span>
+                <div className="flex items-center gap-1 text-xs text-[#6b7280]">
                   <Clock className="h-3 w-3" />
-                  {new Date(match.startTime).toLocaleDateString()}
+                  {new Date(match.commence_time).toLocaleDateString()}
                 </div>
               </div>
 
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#ffffff]">{match.homeTeam}</p>
+                  <p className="text-sm font-semibold text-[#ffffff]">{match.home_team}</p>
                 </div>
-                <div className="px-4 text-sm font-bold text-[#888888]">VS</div>
+                <div className="px-4 text-sm font-bold text-[#6b7280]">VS</div>
                 <div className="flex-1 text-right">
-                  <p className="text-sm font-semibold text-[#ffffff]">{match.awayTeam}</p>
+                  <p className="text-sm font-semibold text-[#ffffff]">{match.away_team}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => handleSelectBet(match.id, "home", match.homeOdds)}
-                  className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
-                    selectedBets.find((b) => b.matchId === match.id && b.selection === "home")
-                      ? "bg-[#00a651] text-[#ffffff]"
-                      : "bg-[#222222] text-[#ffffff] hover:bg-[#333333]"
-                  }`}
-                >
-                  1
-                  <div className="text-xs text-[#888888]">{match.homeOdds.toFixed(2)}</div>
-                </button>
-                <button
-                  onClick={() => handleSelectBet(match.id, "draw", match.drawOdds)}
-                  className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
-                    selectedBets.find((b) => b.matchId === match.id && b.selection === "draw")
-                      ? "bg-[#00a651] text-[#ffffff]"
-                      : "bg-[#222222] text-[#ffffff] hover:bg-[#333333]"
-                  }`}
-                >
-                  X
-                  <div className="text-xs text-[#888888]">{match.drawOdds.toFixed(2)}</div>
-                </button>
-                <button
-                  onClick={() => handleSelectBet(match.id, "away", match.awayOdds)}
-                  className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
-                    selectedBets.find((b) => b.matchId === match.id && b.selection === "away")
-                      ? "bg-[#00a651] text-[#ffffff]"
-                      : "bg-[#222222] text-[#ffffff] hover:bg-[#333333]"
-                  }`}
-                >
-                  2
-                  <div className="text-xs text-[#888888]">{match.awayOdds.toFixed(2)}</div>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Betslip */}
-        {selectedBets.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 border-t border-[#333333] bg-[#1a1a1a] p-4">
-            <div className="mx-auto max-w-4xl">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-[#ffffff]">Betslip ({selectedBets.length})</h3>
-                <button
-                  onClick={() => setSelectedBets([])}
-                  className="text-xs text-[#e63946]"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              <div className="mb-3 space-y-2">
-                {selectedBets.map((bet) => (
-                  <div
-                    key={bet.matchId}
-                    className="flex items-center justify-between rounded-lg bg-[#222222] p-2"
+                {outcomes.map((outcome) => (
+                  <button
+                    key={outcome.name}
+                    onClick={() => handleSelectBet(match, outcome.name, outcome.price)}
+                    className={`rounded-lg py-3 text-sm font-semibold transition-colors ${
+                      isSelected(match.id, outcome.name)
+                        ? "bg-[#00C853] text-[#ffffff]"
+                        : "bg-[#2d3448] text-[#ffffff] hover:bg-[#3d4460]"
+                    }`}
                   >
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-[#ffffff]">
-                        {bet.match.homeTeam} vs {bet.match.awayTeam}
-                      </p>
-                      <p className="text-xs text-[#888888]">
-                        {bet.selection.toUpperCase()} @ {bet.odds.toFixed(2)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveBet(bet.matchId)}
-                      className="text-[#e63946]"
-                    >
-                      ×
-                    </button>
-                  </div>
+                    <div className="text-xs text-[#6b7280]">{outcome.name}</div>
+                    <div className="text-lg font-bold">{outcome.price.toFixed(2)}</div>
+                  </button>
                 ))}
               </div>
+            </div>
+          );
+        })}
+      </div>
 
-              <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="text-[#888888]">Total Odds:</span>
-                <span className="font-bold text-[#f5c518]">
-                  {selectedBets.reduce((acc, bet) => acc * bet.odds, 1).toFixed(2)}
-                </span>
-              </div>
-
-              <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="text-[#888888]">Potential Win (100 KES):</span>
-                <span className="font-bold text-[#00a651]">
-                  KES {calculatePotentialWin().toFixed(2)}
-                </span>
-              </div>
-
+      {/* BETSLIP */}
+      {selectedBets.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-[#1e2530] bg-[#1a1f2e] p-4">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-[#ffffff]">Betslip ({selectedBets.length})</h3>
               <button
-                className="w-full rounded-lg bg-[#00a651] py-3 font-semibold text-[#ffffff] hover:bg-[#008c45] transition-colors"
+                onClick={() => setSelectedBets([])}
+                className="text-xs text-[#ef4444]"
               >
-                Place Bet
+                Clear All
               </button>
             </div>
+
+            <div className="mb-3 space-y-2 max-h-40 overflow-y-auto">
+              {selectedBets.map((bet) => (
+                <div
+                  key={bet.match.id}
+                  className="flex items-center justify-between rounded-lg bg-[#2d3448] p-3"
+                >
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-[#ffffff]">
+                      {bet.match.home_team} vs {bet.match.away_team}
+                    </p>
+                    <p className="text-xs text-[#6b7280]">
+                      {bet.selection} @ {bet.odds.toFixed(2)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveBet(bet.match.id)}
+                    className="text-[#ef4444]"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Stake Input */}
+            <div className="mb-3">
+              <label className="mb-2 block text-xs font-semibold text-[#6b7280]">Stake (KES)</label>
+              <input
+                type="number"
+                value={stake}
+                onChange={(e) => setStake(Number(e.target.value))}
+                min={10}
+                className="w-full rounded-lg bg-[#2d3448] px-4 py-3 text-[#ffffff] outline-none focus:ring-2 focus:ring-[#00C853]"
+              />
+            </div>
+
+            <div className="mb-3 flex items-center justify-between text-sm">
+              <span className="text-[#6b7280]">Total Odds:</span>
+              <span className="font-bold text-[#f5a623]">
+                {calculateTotalOdds().toFixed(2)}
+              </span>
+            </div>
+
+            <div className="mb-3 flex items-center justify-between text-sm">
+              <span className="text-[#6b7280]">Potential Win:</span>
+              <span className="font-bold text-[#00C853]">
+                KES {calculatePotentialWin().toFixed(2)}
+              </span>
+            </div>
+
+            <button
+              className="w-full rounded-xl bg-[#00C853] py-4 font-bold text-[#ffffff] hover:bg-[#00a651] transition-colors"
+            >
+              Place Bet
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

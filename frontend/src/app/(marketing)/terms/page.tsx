@@ -11,7 +11,7 @@ export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-[#ffffff]">Terms &amp; Conditions</h1>
-      <p className="mt-4 text-sm text-[#888888]">
+      <p className="mt-4 text-sm text-[#6b7280]">
         Last updated: {new Date().toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" })}
       </p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-[#888888]">

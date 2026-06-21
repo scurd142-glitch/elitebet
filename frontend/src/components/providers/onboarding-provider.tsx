@@ -23,7 +23,7 @@ export function OnboardingProvider({ children, user }: { children: ReactNode; us
 
   useEffect(() => {
     // Check if onboarding was completed
-    const onboardingComplete = localStorage.getItem("elitebet_onboarding_complete");
+    const onboardingComplete = localStorage.getItem("nitebet_onboarding_complete");
     if (!onboardingComplete && user) {
       setShowOnboarding(true);
     }

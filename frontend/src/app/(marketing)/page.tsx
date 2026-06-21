@@ -2,18 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plane, Gamepad2, Dice1, Sparkles, Gift, ArrowRight } from "lucide-react";
-
-type QuickAccessItem = {
-  name: string;
-  icon: any;
-  color: string;
-  href?: string;
-};
+import { Search, Sun, Bell, Gift, ArrowRight, Plane, Star, Trophy, Gamepad2, Dice1 } from "lucide-react";
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("Crash");
   const [winTicker, setWinTicker] = useState<string>("");
+  const [balance] = useState(0.00);
 
   const categories = [
     { name: "Crash", count: 65 },
@@ -24,12 +18,10 @@ export default function HomePage() {
 
   const games = [
     { name: "Aviator", isNew: true, gradient: "from-orange-500 to-red-600", href: "/games/aviator" },
-    { name: "JetX", isNew: true, gradient: "from-purple-500 to-pink-600", href: "/games/jetx" },
-    { name: "Bazooka", isNew: true, gradient: "from-blue-500 to-cyan-600", href: "/games/bazooka" },
-    { name: "Aviatrix", isNew: false, gradient: "from-green-500 to-teal-600", href: "/games/aviatrix" },
-    { name: "Blackjack", isNew: false, gradient: "from-gray-700 to-gray-900", href: "/casino" },
-    { name: "Roulette", isNew: false, gradient: "from-red-600 to-red-800", href: "/casino" },
-    { name: "Virtual Football", isNew: false, gradient: "from-emerald-500 to-green-700", href: "/sports" },
+    { name: "Avionix", isNew: true, gradient: "from-purple-500 to-pink-600", href: "/games/aviator" },
+    { name: "Bazooka", isNew: true, gradient: "from-blue-500 to-cyan-600", href: "/games/aviator" },
+    { name: "JetX", isNew: true, gradient: "from-green-500 to-teal-600", href: "/games/aviator" },
+    { name: "Aviatrix", isNew: false, gradient: "from-yellow-500 to-orange-600", href: "/games/aviator" },
   ];
 
   const deals = [
@@ -46,12 +38,11 @@ export default function HomePage() {
   }));
 
   const quickAccess = [
-    { name: "Aviator", icon: Plane, color: "bg-orange-500", href: "/games/aviator" },
-    { name: "Sports", icon: Gamepad2, color: "bg-[#222222]", href: "/sports" },
-    { name: "Casino", icon: Gamepad2, color: "bg-[#222222]", href: "/casino" },
-    { name: "Promotions", icon: Gift, color: "bg-[#222222]", href: "/promotions" },
-    { name: "My Bets", icon: Gamepad2, color: "bg-[#222222]", href: "/my-bets" },
-    { name: "FAQ", icon: Dice1, color: "bg-[#222222]", href: "/faq" },
+    { name: "Aviator", icon: Plane, color: "bg-[#ff2d55]", href: "/games/aviator" },
+    { name: "Featured", icon: Star, color: "bg-[#a855f7]", href: "/games/aviator" },
+    { name: "vFootball", icon: Trophy, color: "bg-[#00C853]", href: "/sports" },
+    { name: "Ligi Kuu", icon: Trophy, color: "bg-[#f5a623]", href: "/sports" },
+    { name: "Soccer", icon: Trophy, color: "bg-[#00C853]", href: "/sports", badge: "50+" },
   ];
 
   // Simulated win ticker
@@ -63,136 +54,182 @@ export default function HomePage() {
       setWinTicker(`💰 Just now! ${randomPhone} got KES ${randomAmount.toLocaleString()} on ${randomGame}`);
     };
     updateTicker();
-    const interval = setInterval(updateTicker, 5000);
+    const interval = setInterval(updateTicker, 4000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="pb-24">
-      {/* Game Category Tabs */}
-      <section className="border-b border-[#333333] bg-[#111111]">
-        <div className="flex gap-6 overflow-x-auto px-4 py-3 scrollbar-hide">
+      {/* HEADER */}
+      <header className="flex h-[56px] items-center justify-between bg-[#0d1117] px-4">
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          <div className="h-9 w-9 rounded-lg bg-[#00C853] flex items-center justify-center">
+            <span className="text-lg font-bold text-[#ffffff]">N</span>
+          </div>
+          {/* Balance */}
+          <span className="text-[14px] font-semibold text-[#ffffff]">KES {balance.toFixed(2)}</span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* Gift with badge */}
+          <div className="relative">
+            <Gift className="h-6 w-6 text-[#ffffff]" />
+            <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#00C853]">
+              <span className="text-[8px] font-bold text-[#ffffff]">3</span>
+            </div>
+          </div>
+
+          {/* Deposit button */}
+          <button className="h-9 rounded-lg bg-[#00C853] px-4 text-[14px] font-bold text-[#ffffff]">
+            Deposit
+          </button>
+
+          {/* Icons */}
+          <Search className="h-6 w-6 text-[#ffffff]" />
+          <Sun className="h-6 w-6 text-[#ffffff]" />
+          <div className="relative">
+            <Bell className="h-6 w-6 text-[#ffffff]" />
+            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#00C853]" />
+          </div>
+        </div>
+      </header>
+
+      {/* CATEGORY TABS */}
+      <section className="h-[44px] border-b border-[#1e2530]">
+        <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat.name}
               onClick={() => setActiveCategory(cat.name)}
-              className={`whitespace-nowrap pb-2 text-sm font-medium transition-colors ${
+              className={`h-8 whitespace-nowrap rounded-full px-[14px] text-[13px] font-semibold transition-colors ${
                 activeCategory === cat.name
-                  ? "text-[#ffffff] border-b-2 border-[#00a651]"
-                  : "text-[#888888]"
+                  ? "bg-[#ffffff] text-[#000000]"
+                  : "bg-[#1e2530] text-[#9aa0a6]"
               }`}
             >
-              {cat.name} ({cat.count})
+              {cat.name} {cat.count}
             </button>
           ))}
         </div>
       </section>
 
-      {/* Game Icon Grid */}
-      <section className="px-4 py-4">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      {/* GAME ICONS ROW */}
+      <section className="h-[120px] px-4 py-4">
+        <div className="flex gap-[10px] overflow-x-auto scrollbar-hide">
           {games.map((game) => (
             <Link
               key={game.name}
               href={game.href}
-              className="flex-shrink-0 flex flex-col items-center gap-2"
+              className="flex-shrink-0 flex flex-col items-center"
             >
-              <div className={`relative h-[80px] w-[80px] rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center`}>
+              <div className={`relative h-[90px] w-[90px] rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center`}>
                 {game.isNew && (
-                  <span className="absolute -top-2 -right-2 bg-[#e63946] px-2 py-0.5 text-[10px] font-bold text-[#ffffff] rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-[#ff0000] px-[5px] py-[2px] text-[9px] font-bold text-[#ffffff] rounded-[4px]">
                     NEW
                   </span>
                 )}
-                <Gamepad2 className="h-8 w-8 text-white/80" />
+                <Gamepad2 className="h-10 w-10 text-white/80" />
               </div>
-              <span className="text-xs text-[#ffffff]">{game.name}</span>
+              <span className="mt-1 text-[11px] text-[#ffffff] text-center">{game.name}</span>
             </Link>
           ))}
+          {/* More button */}
+          <div className="flex-shrink-0 flex flex-col items-center">
+            <div className="h-[90px] w-[90px] rounded-2xl bg-[#1e2530] flex items-center justify-center">
+              <span className="text-2xl text-[#6b7280]">...</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* DEALS Section */}
-      <section className="px-4 py-4">
-        <h2 className="mb-3 text-lg font-bold text-[#ffffff]">DEALS</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      {/* DEALS ROW */}
+      <section className="h-[56px] px-4">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <span className="text-[11px] font-semibold text-[#6b7280] mr-2">DEALS</span>
           {deals.map((deal, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-[200px] rounded-xl border-2 border-[#00a651] bg-[#1a1a1a] p-4"
+              className="flex-shrink-0 h-[52px] w-[110px] rounded-xl bg-[#1e2530] p-[6px] px-[10px]"
             >
-              <span className="text-2xl">{deal.icon}</span>
-              <h3 className="mt-2 text-sm font-bold text-[#ffffff]">{deal.title}</h3>
-              <p className="text-xs text-[#888888]">{deal.subtitle}</p>
+              <span className="text-[18px]">{deal.icon}</span>
+              <h3 className="mt-1 text-[11px] font-semibold text-[#ffffff] truncate">{deal.title}</h3>
+              <p className="text-[10px] text-[#6b7280]">{deal.subtitle}</p>
             </div>
           ))}
+          <Link href="/promotions" className="ml-auto text-[12px] font-bold text-[#00C853]">
+            VIEW →
+          </Link>
         </div>
       </section>
 
-      {/* Live Wins Ticker */}
-      <section className="overflow-hidden bg-[#00a651] py-2">
-        <div className="animate-marquee whitespace-nowrap">
-          <span className="text-sm font-medium text-[#ffffff]">{winTicker}</span>
-        </div>
+      {/* LIVE WIN TICKER */}
+      <section className="h-[44px] flex items-center bg-[#00C853] px-4">
+        <span className="mr-2">💰</span>
+        <span className="flex-1 text-[13px] font-semibold text-[#ffffff]">{winTicker}</span>
+        <span className="ml-2">👉</span>
       </section>
 
-      {/* Recent Big Wins */}
+      {/* RECENT BIG WINS */}
       <section className="px-4 py-4">
-        <h2 className="mb-3 text-lg font-bold text-[#ffffff]">Recent Big Wins</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-2 w-2 rounded-full bg-[#00C853]" />
+          <h2 className="text-[16px] font-bold text-[#ffffff]">Recent Big Wins</h2>
+        </div>
+        <div className="flex gap-[10px] overflow-x-auto pb-2 scrollbar-hide">
           {bigWins.map((win, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-[160px] rounded-xl bg-[#1a1a1a] p-3 border border-[#333333]"
+              className="flex-shrink-0 w-[130px] h-[170px] rounded-xl bg-[#1e2530] overflow-hidden"
             >
-              <div className={`h-16 w-full rounded-lg bg-gradient-to-br ${win.gradient} mb-2`} />
-              <p className="text-xs text-[#888888]">{win.phone}</p>
-              <p className="text-sm font-bold text-[#f5c518]">KES {win.amount.toLocaleString()}</p>
-              <p className="text-xs text-[#888888]">{win.game}</p>
+              <div className={`h-[100px] w-full bg-gradient-to-br ${win.gradient}`} />
+              <p className="px-2 mt-1 text-[11px] text-[#9aa0a6]">{win.phone}</p>
+              <p className="px-2 text-[13px] font-bold text-[#00C853]">KES {win.amount.toLocaleString()}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Quick Access Circles */}
-      <section className="px-4 py-4">
-        <h2 className="mb-3 text-lg font-bold text-[#ffffff]">Quick Access</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      {/* QUICK ACCESS ICONS ROW */}
+      <section className="h-[90px] px-4 py-2">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
           {quickAccess.map((item, i) => (
             <Link
               key={i}
               href={item.href || "#"}
-              className="flex-shrink-0 flex flex-col items-center gap-2"
+              className="flex-shrink-0 flex flex-col items-center"
             >
-              <div className={`h-16 w-16 rounded-full ${item.color} flex items-center justify-center`}>
+              <div className="relative h-[56px] w-[56px] rounded-full bg-[#1e2530] flex items-center justify-center">
                 <item.icon className="h-7 w-7 text-[#ffffff]" />
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 bg-[#f5a623] px-1.5 py-0.5 text-[8px] font-bold text-[#ffffff] rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </div>
-              <span className="text-xs text-[#ffffff]">{item.name}</span>
+              <span className="mt-1 text-[11px] text-[#ffffff] text-center">{item.name}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Special Offer Card */}
-      <section className="px-4 py-4">
-        <div className="rounded-2xl bg-gradient-to-r from-[#00a651] to-[#008c45] p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <span className="inline-block rounded-full bg-[#ffffff]/20 px-3 py-1 text-xs font-bold text-[#ffffff] mb-2">
-                SPECIAL OFFER
-              </span>
-              <h3 className="text-xl font-bold text-[#ffffff] mb-1">Get 100% Boost Bonus</h3>
-              <Link
-                href="/promotions"
-                className="inline-flex items-center gap-2 rounded-full bg-[#ffffff] px-4 py-2 text-sm font-bold text-[#00a651] hover:bg-[#f5f5f5] transition-colors"
-              >
-                Claim Now <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="ml-4">
-              <Gift className="h-16 w-16 text-[#ffffff]/80" />
-            </div>
-          </div>
+      {/* SPECIAL OFFER BANNER */}
+      <section className="mx-4 my-4 rounded-2xl bg-[#1e2530] p-4 relative">
+        <span className="text-[10px] font-bold text-[#00C853] tracking-widest uppercase">
+          SPECIAL OFFER
+        </span>
+        <h3 className="mt-1 text-[20px] font-extrabold text-[#ffffff] max-w-[60%]">
+          Get 100% Boost Bonus
+        </h3>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <Gift className="h-16 w-16 text-[#00C853]" />
         </div>
+        <Link
+          href="/promotions"
+          className="inline-flex items-center gap-2 mt-3 h-10 rounded-full bg-[#00C853] px-5 text-[14px] font-bold text-[#ffffff]"
+        >
+          Claim Now <ArrowRight className="h-4 w-4" />
+        </Link>
       </section>
     </div>
   );

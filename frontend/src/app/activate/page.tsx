@@ -52,9 +52,9 @@ export default function ActivatePage() {
       <div className="flex flex-col items-center gap-4 py-12 text-center">
         <CheckCircle2 className="h-12 w-12 text-green-500" />
         <h1 className="text-2xl font-bold">Account activated</h1>
-        <p className="text-[#888888]">You have full access to EliteBet.</p>
+        <p className="text-[#6b7280]">You have full access to NiteBet.</p>
         <Link href="/">
-          <Button className="bg-[#00a651] text-[#ffffff]">Go to home</Button>
+          <Button className="bg-[#00C853] text-[#ffffff]">Go to home</Button>
         </Link>
       </div>
     );
@@ -76,8 +76,8 @@ export default function ActivatePage() {
           <CreditCard className="h-6 w-6 text-white" />
         </div>
         <h1 className="text-2xl font-bold text-[#ffffff]">Activate Your Account</h1>
-        <p className="mt-1 text-sm text-[#888888]">
-          Pay the registration fee to unlock betting, wallet, and referrals on EliteBet.
+        <p className="mt-1 text-sm text-[#6b7280]">
+          Pay the registration fee to unlock betting, wallet, and referrals on NiteBet.
         </p>
       </div>
 
@@ -90,24 +90,24 @@ export default function ActivatePage() {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Payment Method</span>
-          <span className="font-bold text-gray-900">M-Pesa / Card</span>
+          <span className="font-bold text-gray-900">Card / Mobile Money</span>
         </div>
         <div className="border-t border-gray-200 pt-4">
           <p className="text-sm font-semibold mb-2 text-gray-900">What you get after activation:</p>
           <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-            <li>Access to all writing jobs</li>
-            <li>Wallet to manage earnings</li>
+            <li>Access to all betting games</li>
+            <li>Wallet to manage funds</li>
             <li>Referral system with KES 50 commission</li>
-            <li>Withdrawal to M-Pesa</li>
-            <li>Writer ranking and badges</li>
+            <li>Withdrawal to mobile money</li>
+            <li>Betting rewards and badges</li>
           </ul>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 shadow-sm">
-        <h2 className="font-semibold text-gray-900">Pay KES {REGISTRATION_FEE} via M-Pesa</h2>
+        <h2 className="font-semibold text-gray-900">Pay KES {REGISTRATION_FEE} via Paystack</h2>
         <p className="text-sm text-gray-600">
-          Secure payment via Paystack. Supports M-Pesa STK Push, Card, and other payment methods.
+          Secure payment via Paystack. Supports Card, Mobile Money, and other payment methods.
           Your account activates automatically after successful payment.
         </p>
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -117,7 +117,7 @@ export default function ActivatePage() {
           disabled={loading}
           onClick={handlePaystackPay}
         >
-          {loading ? "Initializing..." : `Pay KES ${REGISTRATION_FEE} via M-Pesa`}
+          {loading ? "Initializing..." : `Pay KES ${REGISTRATION_FEE}`}
         </Button>
       </div>
     </div>

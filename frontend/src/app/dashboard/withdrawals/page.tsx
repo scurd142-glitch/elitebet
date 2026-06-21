@@ -35,7 +35,7 @@ export default function WithdrawalsPage() {
       phone,
     });
     if (r.success) {
-      setMsg("Withdrawal submitted. After admin approval, funds are sent to your M-Pesa automatically.");
+      setMsg("Withdrawal submitted. After admin approval, funds are sent to your mobile money automatically.");
       setAmount("");
       load();
     } else {
@@ -48,7 +48,7 @@ export default function WithdrawalsPage() {
       <div>
         <h1 className="font-heading text-3xl font-bold heading-gradient">Withdrawals</h1>
         <p className="mt-1 text-sm text-muted-foreground font-body">
-          Request payout to your M-Pesa number. Minimum KES 200. Approved withdrawals are paid via M-Pesa B2C when enabled.
+          Request payout to your mobile money number. Minimum KES 200. Approved withdrawals are paid via mobile money when enabled.
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default function WithdrawalsPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">M-Pesa phone</Label>
+          <Label htmlFor="phone">Mobile money phone</Label>
           <Input
             id="phone"
             value={phone}

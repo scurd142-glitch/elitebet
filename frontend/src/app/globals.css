@@ -1,37 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #111111;
+  --color-background: #0a0e1a;
   --color-foreground: #ffffff;
-  --color-card: #1a1a1a;
+  --color-card: #1a1f2e;
   --color-card-foreground: #ffffff;
-  --color-popover: #1a1a1a;
+  --color-popover: #1a1f2e;
   --color-popover-foreground: #ffffff;
-  --color-primary: #00a651;
+  --color-primary: #00C853;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #222222;
+  --color-secondary: #2d3448;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #222222;
-  --color-muted-foreground: #888888;
-  --color-accent: #f5c518;
-  --color-accent-foreground: #111111;
-  --color-destructive: #e63946;
+  --color-muted: #2d3448;
+  --color-muted-foreground: #6b7280;
+  --color-accent: #f5a623;
+  --color-accent-foreground: #0a0e1a;
+  --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #333333;
-  --color-input: #222222;
-  --color-ring: #00a651;
+  --color-border: #1e2530;
+  --color-input: #2d3448;
+  --color-ring: #00C853;
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;
   --radius-sm: 0.375rem;
 
-  --color-page: #111111;
-  --color-surface: #1a1a1a;
-  --color-surface-secondary: #222222;
-  --color-green: #00a651;
-  --color-gold: #f5c518;
+  --color-page: #0a0e1a;
+  --color-surface: #1a1f2e;
+  --color-surface-secondary: #2d3448;
+  --color-green: #00C853;
+  --color-gold: #f5a623;
   --color-text-primary: #ffffff;
-  --color-text-muted: #888888;
-  --color-error: #e63946;
+  --color-text-muted: #6b7280;
+  --color-error: #ef4444;
 }
 
 @layer base {
@@ -105,16 +105,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #111111;
+  background: #0a0e1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #1e2530;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00a651;
+  background: #00C853;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -126,9 +126,9 @@
   }
 }
 
-/* EliteBet utility classes */
+/* NiteBet utility classes */
 .btn-primary {
-  background: #00a651;
+  background: #00C853;
   color: #ffffff;
   padding: 10px 20px;
   border-radius: var(--radius-md);
@@ -144,8 +144,8 @@
 }
 
 .btn-gold {
-  background: #f5c518;
-  color: #111111;
+  background: #f5a623;
+  color: #0a0e1a;
   padding: 10px 20px;
   border-radius: var(--radius-md);
   font-weight: 600;
@@ -155,51 +155,51 @@
 }
 
 .card-surface {
-  background: #1a1a1a;
-  border: 1px solid #333333;
+  background: #1a1f2e;
+  border: 1px solid #1e2530;
   border-radius: var(--radius-lg);
 }
 
 .input-field {
   width: 100%;
   border-radius: var(--radius-md);
-  border: 1px solid #333333;
-  background: #222222;
+  border: 1px solid #1e2530;
+  background: #2d3448;
   color: #ffffff;
   padding: 12px 16px;
 }
 
 .input-field:focus {
-  border-color: #00a651;
+  border-color: #00C853;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 166, 81, 0.25);
+  box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.25);
 }
 
 .text-muted {
-  color: #888888;
+  color: #6b7280;
 }
 
 .text-gold {
-  color: #f5c518;
+  color: #f5a623;
 }
 
 .text-green {
-  color: #00a651;
+  color: #00C853;
 }
 
 .error-state {
-  background: rgba(230, 57, 70, 0.1);
-  border: 1px solid rgba(230, 57, 70, 0.3);
-  color: #e63946;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 14px;
 }
 
 .success-state {
-  background: rgba(0, 166, 81, 0.1);
-  border: 1px solid rgba(0, 166, 81, 0.3);
-  color: #00a651;
+  background: rgba(0, 200, 83, 0.1);
+  border: 1px solid rgba(0, 200, 83, 0.3);
+  color: #00C853;
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 14px;

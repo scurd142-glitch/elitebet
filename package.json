@@ -1,8 +1,8 @@
 {
-  "name": "elitebet",
+  "name": "nitebet",
   "version": "1.0.0",
   "private": true,
-  "description": "EliteBet — Kenya's ultimate simulation betting platform",
+  "description": "NiteBet — Kenya's ultimate betting platform",
   "workspaces": [
     "frontend",
     "backend",

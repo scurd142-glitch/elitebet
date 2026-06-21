@@ -6,8 +6,8 @@ import { EliteBetLogo } from "@/components/ui/elitebet-logo";
 
 const slides = [
   {
-    title: "Welcome to EliteBet",
-    description: "Kenya's premier betting platform. Deposit via M-Pesa, play crash games, and bet on sports.",
+    title: "Welcome to NiteBet",
+    description: "Kenya's premier betting platform. Play crash games, bet on sports, and enjoy casino entertainment.",
     icon: "🎮",
   },
   {
@@ -34,7 +34,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   const handleComplete = () => {
-    localStorage.setItem("elitebet_onboarding_complete", "true");
+    localStorage.setItem("nitebet_onboarding_complete", "true");
     onComplete();
   };
 
@@ -43,10 +43,10 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-[#111111] px-4">
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-[#0a0e1a] px-4">
       <button
         onClick={handleSkip}
-        className="absolute right-4 top-4 rounded-full p-2 text-[#888888] hover:text-[#ffffff] hover:bg-[#222222] transition-colors"
+        className="absolute right-4 top-4 rounded-full p-2 text-[#6b7280] hover:text-[#ffffff] hover:bg-[#2d3448] transition-colors"
         aria-label="Skip"
       >
         <X className="h-6 w-6" />
@@ -60,7 +60,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
         <div className="text-center">
           <div className="mb-6 text-6xl">{slides[currentSlide].icon}</div>
           <h2 className="mb-4 text-2xl font-bold text-[#ffffff]">{slides[currentSlide].title}</h2>
-          <p className="text-[#888888]">{slides[currentSlide].description}</p>
+          <p className="text-[#6b7280]">{slides[currentSlide].description}</p>
         </div>
 
         <div className="mt-8 flex justify-center gap-2">
@@ -69,7 +69,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
               key={index}
               onClick={() => setCurrentSlide(index)}
               className={`h-2 w-2 rounded-full transition-all ${
-                index === currentSlide ? "w-6 bg-[#00a651]" : "bg-[#333333]"
+                index === currentSlide ? "w-6 bg-[#00C853]" : "bg-[#1e2530]"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -79,7 +79,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
         <div className="mt-8 flex justify-center">
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 rounded-full bg-[#00a651] px-8 py-3 font-semibold text-[#ffffff] hover:bg-[#008c45] transition-colors"
+            className="flex items-center gap-2 rounded-full bg-[#00C853] px-8 py-3 font-semibold text-[#ffffff] hover:bg-[#00a651] transition-colors"
           >
             {currentSlide === slides.length - 1 ? "Get Started" : "Next"}
             <ChevronRight className="h-5 w-5" />

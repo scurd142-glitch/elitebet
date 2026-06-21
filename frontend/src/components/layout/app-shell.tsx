@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AnnouncementBanner } from "@/components/layout/announcement-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 
@@ -23,14 +22,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showChrome = shouldShowAppChrome(pathname);
 
   if (!showChrome) {
-    return <div className="app-main-content--bare bg-[#111111]">{children}</div>;
+    return <div className="app-main-content--bare bg-[#0a0e1a]">{children}</div>;
   }
 
   return (
     <>
-      <AnnouncementBanner />
       <AppHeader />
-      <div className="app-main-content bg-[#111111]">{children}</div>
+      <div className="app-main-content bg-[#0a0e1a]">{children}</div>
       <BottomNav betslipCount={0} />
     </>
   );

@@ -9,6 +9,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "react-hot-toast";
 import { SITE } from "@/lib/constants";
 import { OnboardingWrapper } from "@/components/providers/onboarding-provider";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 
 const bodyFont = Inter({
   variable: "--font-body",
@@ -31,15 +32,14 @@ export const metadata: Metadata = {
     "aviator",
     "crash games",
     "casino",
-    "M-Pesa",
     "Kenya",
-    "EliteBet",
+    "NiteBet",
   ],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "EliteBet",
+    title: "NiteBet",
   },
   openGraph: {
     type: "website",
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#00a651",
+  themeColor: "#00C853",
   colorScheme: "dark",
 };
 
@@ -100,13 +100,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#111111] text-[#ffffff]">
+      <body className="min-h-full flex flex-col bg-[#0a0e1a] text-[#ffffff]">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
             <DepositProvider>
               <OnboardingWrapper>
                 <AppShell>{children}</AppShell>
+                <PWAInstallPrompt />
                 <DepositModal />
               </OnboardingWrapper>
             </DepositProvider>
