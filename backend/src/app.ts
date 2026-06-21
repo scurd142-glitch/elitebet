@@ -29,8 +29,12 @@ export function createApp(env: Env) {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? true,
+      origin: env.CORS_ORIGIN?.split(",").map((s) => s.trim()) ?? [
+        "https://elitebet-frontend-6k6q.vercel.app",
+        "http://localhost:3000",
+      ],
       credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   );
   app.use(express.json({
