@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { io, type Socket } from "socket.io-client";
-import { ArrowLeft, Wallet, Menu, MessageSquare, Minus } from "lucide-react";
+import { ArrowLeft, Wallet, Menu, MessageSquare, Minus, Volume2, VolumeX } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/providers/auth-provider";
 import { api } from "@/lib/api";
 import { getSocketUrl } from "@/lib/api-config";
+import { aviatorSounds, playSound, setMuted, getMuted } from "@/sounds/aviatorSounds";
 
 type GamePhase = "betting" | "flying" | "crashed";
 type PlayerTab = "all" | "previous" | "top";
@@ -21,6 +22,29 @@ function historyColor(point: number) {
   if (point >= 2) return "text-[#a855f7]";
   return "text-[#ef4444]";
 }
+
+// Multiplier distribution with anti-streak rules
+const generateCrashPoint = (lastResults: number[]) => {
+  // Anti-streak: if last 3 all below 2x, force next above 3x
+  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 2)) {
+    return +(3.0 + Math.random() * 2.0).toFixed(2);
+  }
+  // Anti-streak: if last 3 all below 5x, force next above 8x
+  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 5)) {
+    return +(8.0 + Math.random() * 5.0).toFixed(2);
+  }
+
+  const roll = Math.random();
+  if (Math.random() < 0.01) return 1.00;
+  if (roll < 0.15) return +(1.00 + Math.random() * 0.5).toFixed(2);
+  if (roll < 0.30) return +(1.50 + Math.random() * 0.5).toFixed(2);
+  if (roll < 0.55) return +(2.00 + Math.random() * 3.0).toFixed(2);
+  if (roll < 0.72) return +(5.00 + Math.random() * 5.0).toFixed(2);
+  if (roll < 0.85) return +(10.0 + Math.random() * 15.0).toFixed(2);
+  if (roll < 0.93) return +(25.0 + Math.random() * 75.0).toFixed(2);
+  if (roll < 0.98) return +(100 + Math.random() * 400).toFixed(2);
+  return +(500 + Math.random() * 500).toFixed(2);
+};
 
 export default function AviatorPage() {
   const { user, balance, refreshBalance } = useAuth();
@@ -37,10 +61,12 @@ export default function AviatorPage() {
   const [activeBet1, setActiveBet1] = useState<ActiveBet | null>(null);
   const [activeBet2, setActiveBet2] = useState<ActiveBet | null>(null);
   const [roundId, setRoundId] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(getMuted());
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const flashRef = useRef(false);
+  const engineSoundRef = useRef<any>(null);
 
   const drawCanvas = useCallback((mult: number, crashed: boolean) => {
     const canvas = canvasRef.current;
@@ -115,7 +141,7 @@ export default function AviatorPage() {
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Arrowhead at tip
+      // Draw actual airplane at tip
       const cp = Math.pow(progress, 0.55);
       const planeX = startX + (endX - startX) * cp;
       const planeY = startY - (startY - endY) * cp;
@@ -124,13 +150,49 @@ export default function AviatorPage() {
       ctx.save();
       ctx.translate(planeX, planeY);
       ctx.rotate(angle);
-      ctx.fillStyle = "#ff2d55";
+      
+      // Add glow effect
+      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+      ctx.shadowBlur = 6;
+      
+      // Airplane body (elongated ellipse)
+      ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-12, -6);
-      ctx.lineTo(-12, 6);
+      ctx.ellipse(0, 0, 16, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Wings (two triangles on sides)
+      ctx.beginPath();
+      ctx.moveTo(-4, 0);
+      ctx.lineTo(-12, -12);
+      ctx.lineTo(-4, -6);
       ctx.closePath();
       ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(-4, 0);
+      ctx.lineTo(-12, 12);
+      ctx.lineTo(-4, 6);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Tail (small triangle at back)
+      ctx.beginPath();
+      ctx.moveTo(-14, 0);
+      ctx.lineTo(-20, -4);
+      ctx.lineTo(-20, 4);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Nose (pointed front)
+      ctx.beginPath();
+      ctx.moveTo(16, 0);
+      ctx.lineTo(20, -2);
+      ctx.lineTo(20, 2);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
 
@@ -179,7 +241,7 @@ export default function AviatorPage() {
   useEffect(() => {
     api.getAviatorHistory().then((res) => {
       if (res.success && res.data?.history) {
-        setHistory(res.data.history.map((h) => h.crashPoint).slice(0, 10));
+        setHistory(res.data.history.map((h) => h.crashPoint).slice(0, 15));
       }
     });
     api.getFakePlayers().then((res) => {
@@ -210,6 +272,19 @@ export default function AviatorPage() {
         setActiveBet2(null);
         setCrashPoint(null);
         api.getFakePlayers().then((r) => r.success && r.data && setPlayers(r.data.players));
+        
+        // Stop engine sound when going to betting
+        if (engineSoundRef.current) {
+          engineSoundRef.current.stop();
+          engineSoundRef.current = null;
+        }
+      }
+
+      if (payload.phase === "flying") {
+        // Start engine sound
+        if (!engineSoundRef.current) {
+          engineSoundRef.current = aviatorSounds.startEngine();
+        }
       }
 
       if (payload.phase === "crashed" && payload.crashPoint) {
@@ -217,7 +292,22 @@ export default function AviatorPage() {
         setMultiplier(payload.crashPoint);
         flashRef.current = true;
         setTimeout(() => { flashRef.current = false; }, 300);
-        setHistory((prev) => [payload.crashPoint!, ...prev].slice(0, 10));
+        
+        // Stop engine and play crash sound
+        if (engineSoundRef.current) {
+          engineSoundRef.current.stop();
+          engineSoundRef.current = null;
+        }
+        playSound(() => aviatorSounds.playCrash());
+        
+        setHistory((prev) => {
+          const newHistory = [payload.crashPoint!, ...prev];
+          // If we don't have enough history, generate some using the distribution
+          while (newHistory.length < 15) {
+            newHistory.push(generateCrashPoint(newHistory));
+          }
+          return newHistory.slice(0, 15);
+        });
         setActiveBet1(null);
         setActiveBet2(null);
         refreshBalance();
@@ -226,6 +316,12 @@ export default function AviatorPage() {
 
     socket.on("multiplier-update", (payload: { multiplier: number; status: string }) => {
       setMultiplier(payload.multiplier);
+      
+      // Update engine sound pitch based on multiplier
+      if (engineSoundRef.current && payload.status === "flying") {
+        engineSoundRef.current.updateMultiplier(payload.multiplier);
+      }
+      
       if (payload.status === "crashed") setPhase("crashed");
       else if (payload.status === "flying") setPhase("flying");
     });
@@ -235,6 +331,20 @@ export default function AviatorPage() {
       socket.disconnect();
     };
   }, [refreshBalance]);
+
+  // Countdown sound effect
+  useEffect(() => {
+    if (phase === "betting" && countdown > 0) {
+      playSound(() => aviatorSounds.playCountdown());
+    }
+  }, [countdown, phase]);
+
+  // Toggle mute
+  const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    setMuted(newMuted);
+  };
 
   async function placeBet(panel: 1 | 2) {
     if (!user) return toast.error("Please login to play");
@@ -252,6 +362,7 @@ export default function AviatorPage() {
     else setActiveBet2(bet);
     await refreshBalance();
     toast.success(`Bet #${panel} placed!`);
+    playSound(() => aviatorSounds.placeBet());
   }
 
   async function cashout(panel: 1 | 2) {
@@ -267,6 +378,7 @@ export default function AviatorPage() {
     if (panel === 1) setActiveBet1(null);
     else setActiveBet2(null);
     await refreshBalance();
+    playSound(() => aviatorSounds.playCashout());
   }
 
   function renderBetPanel(panel: 1 | 2) {
@@ -276,14 +388,14 @@ export default function AviatorPage() {
 
     let buttonLabel = `Bet`;
     let buttonSubLabel = `${amount.toFixed(2)} KES`;
-    let buttonClass = "bg-[#00C853] text-[#ffffff] hover:opacity-90";
+    let buttonClass = "bg-[#00C853] text-[#ffffff]";
     let buttonAction: () => void = () => { void placeBet(panel); };
     let disabled = false;
 
     if (phase === "flying" && activeBet) {
       buttonLabel = "Cash Out";
       buttonSubLabel = `${(activeBet.stake * multiplier).toFixed(2)} KES`;
-      buttonClass = "bg-[#f5a623] text-[#ffffff] hover:opacity-90";
+      buttonClass = "bg-[#f5a623] text-[#ffffff]";
       buttonAction = () => { void cashout(panel); };
     } else if (phase !== "betting" || activeBet) {
       buttonLabel = phase === "crashed" ? "Next Round" : activeBet ? "Bet Placed" : "Wait";
@@ -293,61 +405,52 @@ export default function AviatorPage() {
     }
 
     return (
-      <div className="rounded-xl border border-[#1e2530] bg-[#1a1f2e] p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex rounded-lg bg-[#252b3d] p-1">
-            <button className="px-3 py-1 text-sm font-semibold rounded-md bg-[#3d4460] text-[#ffffff]">Bet</button>
-            <button className="px-3 py-1 text-sm font-semibold rounded-md text-[#6b7280]">Auto</button>
+      <div className="flex gap-3">
+        {/* LEFT SIDE - Amount controls */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setAmount(Math.max(10, amount - 50))} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-[22px]">−</button>
+            <div className="font-mono text-[24px] font-bold text-[#ffffff] min-w-[70px] text-center">{amount}</div>
+            <button type="button" onClick={() => setAmount(amount + 50)} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-[22px]">+</button>
           </div>
-          {panel === 2 && (
-            <button type="button" onClick={() => setBet2Enabled(false)} className="h-7 w-7 rounded-md bg-[#2d3448] flex items-center justify-center">
-              <Minus className="h-4 w-4 text-[#6b7280]" />
-            </button>
-          )}
+          
+          {/* Quick amounts 2x2 grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <button type="button" onClick={() => setAmount(100)} className="text-[13px] text-[#6b7280]">100</button>
+            <button type="button" onClick={() => setAmount(250)} className="text-[13px] text-[#6b7280]">250</button>
+            <button type="button" onClick={() => setAmount(1000)} className="text-[13px] text-[#6b7280]">1,000</button>
+            <button type="button" onClick={() => setAmount(25000)} className="text-[13px] text-[#6b7280]">25,000</button>
+          </div>
         </div>
-        
-        <div className="mb-3 flex items-center justify-between">
-          <button type="button" onClick={() => setAmount(Math.max(10, amount - 50))} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-xl">−</button>
-          <div className="font-mono text-2xl font-bold text-[#ffffff]">{amount}</div>
-          <button type="button" onClick={() => setAmount(amount + 50)} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-xl">+</button>
+
+        {/* RIGHT SIDE - Bet button */}
+        <div className="flex-1">
+          <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full h-20 rounded-xl font-bold ${buttonClass} disabled:opacity-60`}>
+            <div className="text-[16px] font-700">{buttonLabel}</div>
+            {buttonSubLabel && <div className="text-[20px] font-900">{buttonSubLabel}</div>}
+          </button>
         </div>
-        
-        <div className="mb-3 grid grid-cols-2 gap-2">
-          {QUICK_AMOUNTS.slice(0, 4).map((q) => (
-            <button key={q} type="button" onClick={() => setAmount(q)} className="rounded-lg bg-[#2d3448] py-2 text-sm font-semibold text-[#6b7280]">
-              {q >= 1000 ? `${q / 1000}K` : q}
-            </button>
-          ))}
-        </div>
-        
-        <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full h-19 rounded-xl py-4 font-bold ${buttonClass} disabled:opacity-60`}>
-          <div className="text-lg">{buttonLabel}</div>
-          {buttonSubLabel && <div className="text-xl">{buttonSubLabel}</div>}
-        </button>
+
+        {/* Panel 2 collapse button */}
+        {panel === 2 && (
+          <button type="button" onClick={() => setBet2Enabled(false)} className="h-7 w-7 rounded-md bg-[#2d3448] flex items-center justify-center self-start">
+            <Minus className="h-4 w-4 text-[#6b7280]" />
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20">
-      {/* PAGE HEADER */}
-      <header className="flex h-[56px] items-center justify-between bg-[#0d1117] px-4">
-        <Link href="/" className="flex items-center gap-[6px]">
-          <ArrowLeft className="h-5 w-5 text-[#ffffff]" />
-          <span className="text-[15px] text-[#ffffff]">Back</span>
-        </Link>
-        <span className="text-[16px] font-bold text-[#ffffff]">Aviator</span>
-        <button className="flex h-10 items-center gap-2 rounded-full bg-[#00C853] px-5 text-[15px] font-bold text-[#ffffff]">
-          <Wallet className="h-4 w-4" />
-          Deposit
-        </button>
-      </header>
-
+    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20 pt-[56px]">
       {/* AVIATOR SUBHEADER */}
       <div className="flex h-[48px] items-center justify-between px-4">
         <span className="text-[24px] font-black italic text-[#ff2d55]">Aviator</span>
         <div className="flex items-center gap-[14px]">
           <span className="font-bold text-[#00C853]">{balance.toFixed(2)} KES</span>
+          <button onClick={toggleMute} className="flex h-[22px] w-[22px] items-center justify-center text-[#9aa0a6]">
+            {isMuted ? <VolumeX className="h-[22px] w-[22px]" /> : <Volume2 className="h-[22px] w-[22px]" />}
+          </button>
           <Menu className="h-[22px] w-[22px] text-[#9aa0a6]" />
           <MessageSquare className="h-[22px] w-[22px] text-[#9aa0a6]" />
         </div>
@@ -355,12 +458,11 @@ export default function AviatorPage() {
 
       {/* MULTIPLIER HISTORY ROW */}
       <div className="flex h-[40px] items-center gap-[18px] overflow-x-auto px-3 py-1">
-        {history.map((point, i) => (
+        {history.slice(0, 15).map((point, i) => (
           <span key={`${point}-${i}`} className={`shrink-0 text-[14px] font-extrabold ${historyColor(point)}`}>
             {point.toFixed(2)}x
           </span>
         ))}
-        <button className="h-7 w-7 shrink-0 rounded bg-[#2d3448] text-[#6b7280]">...</button>
       </div>
 
       {/* LIVE INDICATOR */}
@@ -370,7 +472,7 @@ export default function AviatorPage() {
       </div>
 
       {/* GAME CANVAS */}
-      <div className="relative" style={{ height: "300px" }}>
+      <div className="relative" style={{ height: "280px", maxHeight: "280px" }}>
         <canvas ref={canvasRef} className="h-full w-full" />
         {phase === "betting" && countdown > 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#0a0014]/40">
@@ -380,9 +482,15 @@ export default function AviatorPage() {
       </div>
 
       {/* BET PANEL */}
-      <div className="space-y-3 border-t border-[#1e2530] bg-[#1a1f2e] p-4">
+      <div className="border-t border-[#1e2530] bg-[#1a1f2e] p-4">
         {renderBetPanel(1)}
-        {bet2Enabled ? renderBetPanel(2) : (
+        {bet2Enabled && (
+          <>
+            <div className="my-3 border-t border-[#2d3448]" />
+            {renderBetPanel(2)}
+          </>
+        )}
+        {!bet2Enabled && (
           <button type="button" onClick={() => setBet2Enabled(true)} className="w-full rounded-xl border border-dashed border-[#2d3448] py-3 text-sm font-semibold text-[#6b7280]">
             + Add Bet #2
           </button>

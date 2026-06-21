@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Sun, Bell, Gift, ArrowRight, Plane, Star, Trophy, Gamepad2, Dice1 } from "lucide-react";
+import { Gift, ArrowRight, Plane, Star, Trophy, Dice1 } from "lucide-react";
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("Crash");
@@ -17,11 +17,11 @@ export default function HomePage() {
   ];
 
   const games = [
-    { name: "Aviator", isNew: true, gradient: "from-orange-500 to-red-600", href: "/games/aviator" },
-    { name: "Avionix", isNew: true, gradient: "from-purple-500 to-pink-600", href: "/games/aviator" },
-    { name: "Bazooka", isNew: true, gradient: "from-blue-500 to-cyan-600", href: "/games/aviator" },
-    { name: "JetX", isNew: true, gradient: "from-green-500 to-teal-600", href: "/games/aviator" },
-    { name: "Aviatrix", isNew: false, gradient: "from-yellow-500 to-orange-600", href: "/games/aviator" },
+    { id: 1, name: "Aviator", image: "/images/games/aviator.svg", isNew: false, bgColor: "#c0392b", href: "/games/aviator" },
+    { id: 2, name: "Avionix", image: "/images/games/avionix.svg", isNew: false, bgColor: "#1a472a", href: "/games/aviator" },
+    { id: 3, name: "Bazooka", image: "/images/games/bazooka.svg", isNew: true, bgColor: "#922b21", href: "/games/aviator" },
+    { id: 4, name: "JetX", image: "/images/games/jetx.svg", isNew: false, bgColor: "#1a1a2e", href: "/games/aviator" },
+    { id: 5, name: "Aviatrix", image: "/images/games/aviatrix.svg", isNew: false, bgColor: "#2c1654", href: "/games/aviator" },
   ];
 
   const deals = [
@@ -34,7 +34,7 @@ export default function HomePage() {
     phone: `07X${Math.random().toString(36).substring(2, 5).toUpperCase()}XXX`,
     amount: Math.floor(Math.random() * 50000) + 5000,
     game: games[Math.floor(Math.random() * games.length)].name,
-    gradient: games[Math.floor(Math.random() * games.length)].gradient,
+    bgColor: games[Math.floor(Math.random() * games.length)].bgColor,
   }));
 
   const quickAccess = [
@@ -59,42 +59,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="pb-24">
-      {/* HEADER */}
-      <header className="flex h-[56px] items-center justify-between bg-[#0d1117] px-4">
-        <div className="flex items-center gap-3">
-          {/* Logo */}
-          <div className="h-9 w-9 rounded-lg bg-[#00C853] flex items-center justify-center">
-            <span className="text-lg font-bold text-[#ffffff]">N</span>
-          </div>
-          {/* Balance */}
-          <span className="text-[14px] font-semibold text-[#ffffff]">KES {balance.toFixed(2)}</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Gift with badge */}
-          <div className="relative">
-            <Gift className="h-6 w-6 text-[#ffffff]" />
-            <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#00C853]">
-              <span className="text-[8px] font-bold text-[#ffffff]">3</span>
-            </div>
-          </div>
-
-          {/* Deposit button */}
-          <button className="h-9 rounded-lg bg-[#00C853] px-4 text-[14px] font-bold text-[#ffffff]">
-            Deposit
-          </button>
-
-          {/* Icons */}
-          <Search className="h-6 w-6 text-[#ffffff]" />
-          <Sun className="h-6 w-6 text-[#ffffff]" />
-          <div className="relative">
-            <Bell className="h-6 w-6 text-[#ffffff]" />
-            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#00C853]" />
-          </div>
-        </div>
-      </header>
-
+    <div className="pb-24 pt-[56px]">
       {/* CATEGORY TABS */}
       <section className="h-[44px] border-b border-[#1e2530]">
         <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
@@ -123,13 +88,21 @@ export default function HomePage() {
               href={game.href}
               className="flex-shrink-0 flex flex-col items-center"
             >
-              <div className={`relative h-[90px] w-[90px] rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center`}>
+              <div className="relative h-[90px] w-[90px] rounded-2xl overflow-hidden" style={{ backgroundColor: game.bgColor }}>
                 {game.isNew && (
-                  <span className="absolute -top-1 -right-1 bg-[#ff0000] px-[5px] py-[2px] text-[9px] font-bold text-[#ffffff] rounded-[4px]">
+                  <span className="absolute top-[6px] right-[6px] bg-[#ff0000] px-[5px] py-[2px] text-[9px] font-bold text-[#ffffff] rounded-[4px] z-10">
                     NEW
                   </span>
                 )}
-                <Gamepad2 className="h-10 w-10 text-white/80" />
+                <img
+                  src={game.image}
+                  alt={game.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = `<span class="text-white text-xs font-bold">${game.name}</span>`;
+                  }}
+                />
               </div>
               <span className="mt-1 text-[11px] text-[#ffffff] text-center">{game.name}</span>
             </Link>
