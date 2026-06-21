@@ -3,12 +3,18 @@
  * No external libraries or audio files needed
  */
 
-const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+const getAudioContext = () => {
+  if (typeof window === "undefined") return null;
+  return window.AudioContext || (window as any).webkitAudioContext;
+};
 
 export const aviatorSounds = {
   startEngine: () => {
     try {
-      const ctx = new AudioContext();
+      const AudioContextClass = getAudioContext();
+      if (!AudioContextClass) return null;
+      
+      const ctx = new AudioContextClass();
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
       const distortion = ctx.createWaveShaper();
@@ -47,7 +53,10 @@ export const aviatorSounds = {
 
   playCrash: () => {
     try {
-      const ctx = new AudioContext();
+      const AudioContextClass = getAudioContext();
+      if (!AudioContextClass) return;
+      
+      const ctx = new AudioContextClass();
       const bufferSize = ctx.sampleRate * 0.8;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
@@ -78,7 +87,10 @@ export const aviatorSounds = {
 
   playCashout: () => {
     try {
-      const ctx = new AudioContext();
+      const AudioContextClass = getAudioContext();
+      if (!AudioContextClass) return;
+      
+      const ctx = new AudioContextClass();
       const gainNode = ctx.createGain();
       gainNode.connect(ctx.destination);
       gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
@@ -99,7 +111,10 @@ export const aviatorSounds = {
 
   placeBet: () => {
     try {
-      const ctx = new AudioContext();
+      const AudioContextClass = getAudioContext();
+      if (!AudioContextClass) return;
+      
+      const ctx = new AudioContextClass();
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -121,7 +136,10 @@ export const aviatorSounds = {
 
   playCountdown: () => {
     try {
-      const ctx = new AudioContext();
+      const AudioContextClass = getAudioContext();
+      if (!AudioContextClass) return;
+      
+      const ctx = new AudioContextClass();
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -146,7 +164,9 @@ let isMuted = false;
 
 export const setMuted = (muted: boolean) => {
   isMuted = muted;
-  localStorage.setItem("aviator_muted", String(muted));
+  if (typeof window !== "undefined") {
+    localStorage.setItem("aviator_muted", String(muted));
+  }
 };
 
 export const getMuted = (): boolean => {
