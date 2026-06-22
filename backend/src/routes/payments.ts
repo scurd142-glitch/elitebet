@@ -14,7 +14,6 @@ const initSchema = z.object({
   amount: z.number().min(50).max(250_000),
   email: z.string().email().optional(),
   currency: z.string().optional().default("KES"),
-  type: z.enum(["ACCOUNT_ACTIVATION", "DEPOSIT"]).optional().default("DEPOSIT"),
   userId: z.string().optional(),
 });
 
@@ -23,7 +22,6 @@ async function initializePaystackPayment(params: {
   amount: number;
   currency: string;
   userId: string;
-  type: "ACCOUNT_ACTIVATION" | "DEPOSIT";
 }) {
   if (!env.PAYSTACK_SECRET_KEY) {
     throw new Error("Paystack not configured");
@@ -35,7 +33,7 @@ async function initializePaystackPayment(params: {
       amount: params.amount,
       currency: params.currency,
       provider: "PAYSTACK",
-      type: params.type,
+      type: "DEPOSIT",
       status: "PENDING",
     },
   });
@@ -56,7 +54,6 @@ async function initializePaystackPayment(params: {
       metadata: {
         paymentId: payment.id,
         userId: params.userId,
-        type: params.type,
       },
     }),
   });
@@ -93,7 +90,6 @@ router.post("/initialize", requireAuth, async (req, res) => {
     const authUser = (req as AuthRequest).user!;
 
     const user = await prisma.user.findUniqueOrThrow({ where: { id: authUser.id } });
-    const type = parsed.type ?? "DEPOSIT";
     const email = parsed.email ?? user.email;
     const userId = parsed.userId ?? user.id;
 
@@ -102,7 +98,6 @@ router.post("/initialize", requireAuth, async (req, res) => {
       amount: parsed.amount,
       currency: parsed.currency ?? "KES",
       userId,
-      type,
     });
 
     return res.json({
@@ -164,12 +159,6 @@ router.get("/verify/:reference", requireAuth, async (req, res) => {
 
     if (payment.status !== "COMPLETED") {
       await creditDeposit(payment);
-      if (payment.type === "ACCOUNT_ACTIVATION") {
-        const user = await prisma.user.findUnique({ where: { id: payment.userId } });
-        if (user) {
-          sendPaymentConfirmationEmail(user.email, user.fullName, toNumber(payment.amount)).catch(console.error);
-        }
-      }
     }
 
     const wallet = await prisma.wallet.findUnique({ where: { userId: payment.userId } });
@@ -200,12 +189,6 @@ router.post("/verify", async (req, res) => {
     const payment = await prisma.payment.findFirst({ where: { externalRef: reference } });
     if (payment && payment.status !== "COMPLETED") {
       await creditDeposit(payment);
-      if (payment.type === "ACCOUNT_ACTIVATION") {
-        const user = await prisma.user.findUnique({ where: { id: payment.userId } });
-        if (user) {
-          sendPaymentConfirmationEmail(user.email, user.fullName, toNumber(payment.amount)).catch(console.error);
-        }
-      }
     }
 
     return res.json({ success: true, data: { verification: paystackData } });

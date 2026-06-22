@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 
 interface AdminStats {
   totalUsers: number;
-  activatedUsers: number;
   totalRevenue: number;
   totalJobs: number;
   pendingWithdrawals: number;
@@ -27,7 +26,6 @@ export default function AdminOverviewPage() {
         const analytics = res.data;
         setStats({
           totalUsers: analytics.stats.totalUsers || 0,
-          activatedUsers: analytics.stats.activatedUsers || 0,
           totalRevenue: analytics.stats.totalRevenue || 0,
           totalJobs: analytics.stats.totalJobs || 0,
           pendingWithdrawals: analytics.stats.pendingWithdrawals || 0,
@@ -57,13 +55,6 @@ export default function AdminOverviewPage() {
       icon: Users,
       color: "#C9A227",
       bgColor: "rgba(201, 162, 39, 0.1)",
-    },
-    {
-      title: "Activated Users",
-      value: stats?.activatedUsers || 0,
-      icon: Users,
-      color: "#10B981",
-      bgColor: "rgba(16, 185, 129, 0.1)",
     },
     {
       title: "Total Revenue (KES)",

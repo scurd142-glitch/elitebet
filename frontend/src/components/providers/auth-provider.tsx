@@ -95,12 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthToken(res.data.token, remember);
       setUser(res.data.user);
       await refreshBalance();
-      const dest =
-        res.data.user.role === "ADMIN"
-          ? "/admin"
-          : res.data.user.accountStatus === "ACTIVE"
-            ? "/"
-            : "/activate";
+      const dest = res.data.user.role === "ADMIN" ? "/admin" : "/";
       router.push(dest);
       return null;
     },
@@ -123,12 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthToken(res.data.token, false);
       setUser(res.data.user);
       await refreshBalance();
-      const dest =
-        res.data.user.role === "ADMIN"
-          ? "/admin"
-          : res.data.user.accountStatus === "ACTIVE"
-            ? "/"
-            : "/activate";
+      const dest = res.data.user.role === "ADMIN" ? "/admin" : "/";
       router.push(dest);
       return null;
     },

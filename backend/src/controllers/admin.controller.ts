@@ -12,15 +12,14 @@ import type { AuthRequest } from "../middleware/auth.middleware";
 import { paramId } from "../utils/params";
 
 export async function getAnalytics(_req: AuthRequest, res: Response) {
-  const [totalUsers, suspendedUsers, newUsersWeek, pendingWithdrawals, activatedUsers, totalRevenue] = await Promise.all([
+  const [totalUsers, suspendedUsers, newUsersWeek, pendingWithdrawals, totalRevenue] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { accountStatus: "BANNED" } }),
     prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
     prisma.withdrawal.count({ where: { status: "PENDING" } }),
-    prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
     prisma.payment.aggregate({
       where: {
-        type: "ACCOUNT_ACTIVATION",
+        type: "DEPOSIT",
         status: "COMPLETED",
       },
       _sum: {
@@ -43,7 +42,6 @@ export async function getAnalytics(_req: AuthRequest, res: Response) {
         suspendedUsers,
         newUsersWeek,
         pendingWithdrawals,
-        activatedUsers,
         totalRevenue: totalRevenue._sum.amount ? Number(totalRevenue._sum.amount) : 0,
       },
       recentUsers: recentUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),

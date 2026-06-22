@@ -17,16 +17,6 @@ export async function creditDeposit(payment: Payment) {
       data: { status: "COMPLETED", completedAt: new Date() },
     });
 
-    if (payment.type === "ACCOUNT_ACTIVATION") {
-      await tx.user.update({
-        where: { id: payment.userId },
-        data: { accountStatus: "ACTIVE", emailVerifiedAt: new Date() },
-      });
-      return;
-    }
-
-    if (payment.type !== "DEPOSIT") return;
-
     const wallet = await tx.wallet.upsert({
       where: { userId: payment.userId },
       create: { userId: payment.userId, balance: decimal(amount) },
@@ -49,14 +39,12 @@ export async function creditDeposit(payment: Payment) {
     });
   });
 
-  if (payment.type === "DEPOSIT") {
-    await notifyUser(
-      payment.userId,
-      "Deposit successful",
-      `Your deposit of KES ${amount.toFixed(2)} was successful.`,
-      NotificationType.PAYMENT
-    );
-  }
+  await notifyUser(
+    payment.userId,
+    "Deposit successful",
+    `Your deposit of KES ${amount.toFixed(2)} was successful.`,
+    NotificationType.PAYMENT
+  );
 
   return { alreadyProcessed: false, amount };
 }

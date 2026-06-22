@@ -57,17 +57,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleActivateUser = async (userId: string) => {
-    try {
-      const res = await api.activateUserManually(userId);
-      if (res.success) {
-        fetchUsers();
-      }
-    } catch (error) {
-      console.error("Failed to activate user:", error);
-    }
-  };
-
   const getStatusBadge = (status: string) => {
     const styles = {
       ACTIVE: {
@@ -235,16 +224,6 @@ export default function AdminUsersPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
-                      {user.accountStatus === "INACTIVE" && (
-                        <button
-                          onClick={() => handleActivateUser(user.id)}
-                          className="p-2 rounded-lg transition-colors hover:bg-[rgba(16, 185, 129, 0.1)]"
-                          style={{ color: "#10B981" }}
-                          title="Activate User"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
                       <button
                         onClick={() => handleToggleBan(user.id)}
                         className="p-2 rounded-lg transition-colors hover:bg-[rgba(239, 68, 68, 0.1)]"

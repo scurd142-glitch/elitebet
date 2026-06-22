@@ -72,18 +72,6 @@ export default function AdminUserDetailPage() {
     }
   };
 
-  const handleActivateUser = async () => {
-    if (!user) return;
-    try {
-      const res = await api.activateUserManually(user.id);
-      if (res.success) {
-        fetchUserDetail();
-      }
-    } catch (error) {
-      console.error("Failed to activate user:", error);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -282,19 +270,6 @@ export default function AdminUserDetailPage() {
       </div>
 
       <div className="flex gap-4">
-        {user.accountStatus === "INACTIVE" && (
-          <button
-            onClick={handleActivateUser}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
-            style={{
-              background: "#10B981",
-              color: "#1B3A2B",
-            }}
-          >
-            <CheckCircle className="w-4 h-4" />
-            Activate User
-          </button>
-        )}
         <button
           onClick={handleToggleBan}
           className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"

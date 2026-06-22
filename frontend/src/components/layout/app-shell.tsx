@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 
-const BARE_ROUTES = ["/login", "/register", "/verify-2fa", "/activate", "/dashboard"];
+const BARE_ROUTES = ["/login", "/register", "/verify-2fa", "/dashboard"];
 const NO_HEADER_ROUTES = ["/games/aviator"];
 const ADMIN_PREFIX = "/admin";
 const AUTH_CALLBACK_PREFIX = "/payments";

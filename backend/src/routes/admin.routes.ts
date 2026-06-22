@@ -3,7 +3,6 @@ import { asyncHandler } from "../utils/async-handler";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import * as adminController from "../controllers/admin.controller";
-import * as activationAdminController from "../controllers/activation-admin.controller";
 
 export const adminRouter = Router();
 
@@ -14,13 +13,6 @@ adminRouter.use(authMiddleware, adminMiddleware);
 adminRouter.get("/analytics", asyncHandler(adminController.getAnalytics));
 adminRouter.get("/users", asyncHandler(adminController.listUsers));
 adminRouter.patch("/users/:id/ban", asyncHandler(adminController.toggleBanUser));
-adminRouter.post("/users/:id/activate", asyncHandler(activationAdminController.activateUserManually));
-
-adminRouter.get("/activations", asyncHandler(activationAdminController.listActivations));
-adminRouter.patch(
-  "/activations/:id",
-  asyncHandler(activationAdminController.processActivation)
-);
 
 adminRouter.get("/announcements", asyncHandler(adminController.listAnnouncements));
 adminRouter.post("/announcements", asyncHandler(adminController.createAnnouncement));

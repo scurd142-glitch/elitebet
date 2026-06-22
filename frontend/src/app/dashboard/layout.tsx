@@ -20,13 +20,6 @@ export default function DashboardLayout({
       router.replace("/login");
       return;
     }
-    if (
-      user.role === "USER" &&
-      user.accountStatus !== "ACTIVE" &&
-      !pathname.startsWith("/activate")
-    ) {
-      router.replace("/activate");
-    }
     // Protect admin routes
     if (pathname.startsWith("/dashboard/admin") && user.email !== "scurd142@gmail.com") {
       router.replace("/dashboard");

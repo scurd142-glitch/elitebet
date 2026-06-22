@@ -129,31 +129,6 @@ export type ActivityItem = {
   createdAt: string;
 };
 
-export type ActivationPaymentItem = {
-  id: string;
-  amount: number;
-  payerPhone: string;
-  transactionCode: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  adminNote?: string | null;
-  processedAt?: string | null;
-  createdAt: string;
-  user?: {
-    id: string;
-    fullName: string;
-    username: string;
-    email: string;
-    phone: string;
-  };
-};
-
-export type ActivationConfig = {
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  instructions: string[];
-};
-
 export type ContactMessageItem = {
   id: string;
   name: string;

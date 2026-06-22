@@ -52,28 +52,10 @@ export default function AdminUsersPage() {
                     Banned
                   </Badge>
                 )}
-                {u.role !== "ADMIN" && u.accountStatus !== "ACTIVE" && (
-                  <Badge variant="pending">
-                    Not activated
-                  </Badge>
-                )}
               </div>
             </div>
             {u.role !== "ADMIN" && (
               <div className="flex gap-2">
-                {u.accountStatus !== "ACTIVE" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-[rgba(0,200,150,0.3)] text-[#00C896] hover:bg-[rgba(0,200,150,0.1)]"
-                    onClick={async () => {
-                      await api.activateUserManually(u.id);
-                      load(search || undefined);
-                    }}
-                  >
-                    Activate
-                  </Button>
-                )}
                 <Button
                   size="sm"
                   variant={u.isBanned ? "outline" : "default"}

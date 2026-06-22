@@ -9,8 +9,6 @@ import type {
   ActivityItem,
   ContactMessageItem,
   SupportTicketItem,
-  ActivationConfig,
-  ActivationPaymentItem,
   MyBetItem,
 } from "@/types/user";
 
@@ -90,30 +88,6 @@ export const api = {
   logout: () => request<null>("/api/auth/logout", { method: "POST" }),
 
   me: () => request<{ user: PublicUser }>("/api/auth/me"),
-
-  getActivationConfig: () =>
-    request<ActivationConfig>("/api/activation/config"),
-
-  getActivationStatus: () =>
-    request<{
-      isActivated: boolean;
-      activatedAt: string | null;
-      latestPayment: {
-        id: string;
-        amount: number;
-        status: string;
-        createdAt: string;
-      } | null;
-    }>("/api/activation/status"),
-
-  initiateActivationPayment: () =>
-    request<{ authorization_url: string; reference: string; amount: number }>(
-      "/api/activation/pay",
-      { method: "POST" }
-    ),
-
-  refreshActivationUser: () =>
-    request<{ user: PublicUser }>("/api/activation/me"),
 
   getDashboard: () => request<DashboardData>("/api/user/dashboard"),
 
@@ -263,23 +237,6 @@ export const api = {
   toggleBanUser: (id: string) =>
     request<{ isBanned: boolean }>(`/api/admin/users/${id}/ban`, {
       method: "PATCH",
-    }),
-
-  activateUserManually: (id: string) =>
-    request<null>(`/api/admin/users/${id}/activate`, { method: "POST" }),
-
-  getAdminActivations: (status?: string) =>
-    request<{ payments: ActivationPaymentItem[] }>(
-      `/api/admin/activations${status ? `?status=${status}` : ""}`
-    ),
-
-  processActivation: (
-    id: string,
-    payload: { status: "APPROVED" | "REJECTED"; adminNote?: string }
-  ) =>
-    request<null>(`/api/admin/activations/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
     }),
 
   getContactMessages: () =>

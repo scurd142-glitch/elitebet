@@ -10,7 +10,6 @@ import walletRouter from "./routes/wallet";
 import referralsRouter from "./routes/referrals";
 import adminRouter from "./routes/admin";
 import notificationsRouter from "./routes/notifications";
-import { activationRouter } from "./routes/activation.routes";
 import { userRouter } from "./routes/user.routes";
 import { contactRouter } from "./routes/contact.routes";
 import { ticketsRouter } from "./routes/tickets.routes";
@@ -71,7 +70,6 @@ export function createApp(env: Env) {
   app.use("/api/referrals", referralsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/notifications", notificationsRouter);
-  app.use("/api/activation", activationRouter);
   app.use("/api/user", userRouter);
   app.use("/api/contact", contactRouter);
   app.use("/api/tickets", ticketsRouter);
