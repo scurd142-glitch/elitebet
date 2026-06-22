@@ -9,10 +9,40 @@ const KENYAN_NAMES = [
 ];
 
 export function generateCrashPoint(): number {
+  // 1% house edge
+  if (Math.random() < 0.01) return 1.0;
+
   const r = Math.random();
-  if (r < 0.01) return 1.0;
-  const crash = Math.max(1.0, ((100 / (1 - r)) * 0.97) / 100);
-  return Math.round(crash * 100) / 100;
+
+  // FESTIVE SEASON DISTRIBUTION:
+  // Below 2x: only 8% of rounds
+  if (r < 0.04)
+    return Math.round((1.0 + Math.random() * 0.5) * 100) / 100; // 1.0-1.5x: 4%
+  if (r < 0.08)
+    return Math.round((1.5 + Math.random() * 0.5) * 100) / 100; // 1.5-2.0x: 4%
+
+  // 2x-5x: 17% of rounds
+  if (r < 0.25)
+    return Math.round((2.0 + Math.random() * 3.0) * 100) / 100; // 2-5x: 17%
+
+  // 5x-12x: 30% of rounds (MOST COMMON)
+  if (r < 0.55)
+    return Math.round((5.0 + Math.random() * 7.0) * 100) / 100; // 5-12x: 30%
+
+  // 12x-25x: 25% of rounds
+  if (r < 0.80)
+    return Math.round((12.0 + Math.random() * 13.0) * 100) / 100; // 12-25x: 25%
+
+  // 25x-100x: 12% of rounds
+  if (r < 0.92)
+    return Math.round((25.0 + Math.random() * 75.0) * 100) / 100; // 25-100x: 12%
+
+  // 100x-500x: 6% of rounds
+  if (r < 0.98)
+    return Math.round((100 + Math.random() * 400) * 100) / 100; // 100-500x: 6%
+
+  // 500x-2000x: 2% of rounds (jackpot)
+  return Math.round((500 + Math.random() * 1500) * 100) / 100; // 500-2000x: 2%
 }
 
 let currentRound: { id: string; crashPoint: number } | null = null;
@@ -25,7 +55,7 @@ export function getGameState() {
     phase: gamePhase,
     roundId: currentRound?.id ?? null,
     multiplier: currentMultiplier,
-    countdown: gamePhase === "betting" ? 5 : 0,
+    countdown: gamePhase === "betting" ? 6 : 0,
   };
 }
 
@@ -129,9 +159,9 @@ export function startGameLoop() {
     gamePhase = "betting";
     currentMultiplier = 1.0;
 
-    broadcastGamePhase({ phase: "betting", roundId: round.id, countdown: 5, multiplier: 1.0 });
+    broadcastGamePhase({ phase: "betting", roundId: round.id, countdown: 6, multiplier: 1.0 });
 
-    for (let c = 5; c > 0; c--) {
+    for (let c = 6; c > 0; c--) {
       broadcastGamePhase({ phase: "betting", roundId: round.id, countdown: c, multiplier: 1.0 });
       await sleep(1000);
     }
@@ -140,9 +170,23 @@ export function startGameLoop() {
     currentMultiplier = 1.0;
     broadcastGamePhase({ phase: "flying", roundId: round.id, multiplier: 1.0 });
 
+    // Speed configuration with acceleration
+    const BASE_SPEED = 3.5;
+    const ACCELERATION = 0.15;
+    const FRAME_RATE = 60; // 60fps
+    const FRAME_TIME = 1000 / FRAME_RATE; // ~16.67ms
+
     while (currentMultiplier < crashPoint) {
-      await sleep(100);
-      currentMultiplier = Math.round((currentMultiplier + 0.01) * 100) / 100;
+      await sleep(FRAME_TIME);
+      
+      // Calculate current speed with acceleration
+      const currentSpeed = BASE_SPEED + (currentMultiplier * ACCELERATION);
+      
+      // Multiplier increment per tick (faster counting)
+      const multiplierIncrement = 0.03 + (currentMultiplier * 0.008);
+      
+      // Apply increment scaled by speed
+      currentMultiplier = Math.round((currentMultiplier + (multiplierIncrement * currentSpeed / 10)) * 100) / 100;
       broadcastMultiplier(currentMultiplier, "flying");
     }
 

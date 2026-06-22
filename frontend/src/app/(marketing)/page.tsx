@@ -66,7 +66,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="pb-24 pt-[56px]">
+    <div className="pb-24 pt-2">
       {/* CATEGORY TABS */}
       <section className="h-[44px] border-b border-[#1e2530]">
         <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">

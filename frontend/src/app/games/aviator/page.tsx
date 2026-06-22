@@ -17,37 +17,59 @@ type ActiveBet = { id: string; stake: number };
 
 const QUICK_AMOUNTS = [100, 200, 500, 20000];
 
-function historyColor(point: number) {
+function historyColor(point: number, index: number) {
   if (point >= 10) return "text-[#00C853]";
-  if (point >= 2) return "text-[#a855f7]";
+  if (point >= 2) {
+    // Alternate between purple and blue for variety
+    return index % 2 === 0 ? "text-[#a855f7]" : "text-[#3b82f6]";
+  }
   return "text-[#ef4444]";
 }
 
-// Multiplier distribution with anti-streak rules (peak season)
+// Multiplier distribution with anti-streak rules (festive season)
 const generateCrashPoint = (lastResults: number[]) => {
-  // Anti-streak: if last 3 all below 3x, force next between 8x-20x
-  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 3)) {
-    return +(8.0 + Math.random() * 12.0).toFixed(2);
-  }
-  // Anti-streak: if last 2 all below 2x, force next between 5x-15x
-  if (lastResults.length >= 2 && lastResults.slice(-2).every(r => r < 2)) {
-    return +(5.0 + Math.random() * 10.0).toFixed(2);
-  }
-  // Never 4 consecutive crashes below 3x
-  if (lastResults.length >= 4 && lastResults.slice(-4).every(r => r < 3)) {
-    return +(10.0 + Math.random() * 15.0).toFixed(2);
+  // 1% house edge
+  if (Math.random() < 0.01) return 1.00;
+
+  // Anti-streak: check last 5 results
+  const recentLow = lastResults.slice(-3).filter(r => r < 3).length;
+
+  // If 2 of last 3 were below 3x, force high result
+  if (recentLow >= 2) {
+    return +(8 + Math.random() * 42).toFixed(2);
   }
 
   const roll = Math.random();
-  if (Math.random() < 0.01) return 1.00;
-  if (roll < 0.05) return +(1.00 + Math.random() * 0.5).toFixed(2);
-  if (roll < 0.15) return +(1.50 + Math.random() * 0.5).toFixed(2);
-  if (roll < 0.35) return +(2.00 + Math.random() * 3.0).toFixed(2);
-  if (roll < 0.60) return +(5.00 + Math.random() * 7.0).toFixed(2);
-  if (roll < 0.80) return +(12.0 + Math.random() * 13.0).toFixed(2);
-  if (roll < 0.90) return +(25.0 + Math.random() * 25.0).toFixed(2);
-  if (roll < 0.97) return +(50.0 + Math.random() * 150).toFixed(2);
-  return +(200 + Math.random() * 800).toFixed(2);
+
+  // FESTIVE SEASON DISTRIBUTION:
+  // Below 2x: only 8% of rounds
+  if (roll < 0.04)
+    return +(1.00 + Math.random() * 0.5).toFixed(2); // 1.0-1.5x: 4%
+  if (roll < 0.08)
+    return +(1.50 + Math.random() * 0.5).toFixed(2); // 1.5-2.0x: 4%
+
+  // 2x-5x: 17% of rounds
+  if (roll < 0.25)
+    return +(2.00 + Math.random() * 3.0).toFixed(2); // 2-5x: 17%
+
+  // 5x-12x: 30% of rounds (MOST COMMON)
+  if (roll < 0.55)
+    return +(5.00 + Math.random() * 7.0).toFixed(2); // 5-12x: 30%
+
+  // 12x-25x: 25% of rounds
+  if (roll < 0.80)
+    return +(12.0 + Math.random() * 13.0).toFixed(2); // 12-25x: 25%
+
+  // 25x-100x: 12% of rounds
+  if (roll < 0.92)
+    return +(25.0 + Math.random() * 75.0).toFixed(2); // 25-100x: 12%
+
+  // 100x-500x: 6% of rounds
+  if (roll < 0.98)
+    return +(100 + Math.random() * 400).toFixed(2); // 100-500x: 6%
+
+  // 500x-2000x: 2% of rounds (jackpot)
+  return +(500 + Math.random() * 1500).toFixed(2); // 500-2000x: 2%
 };
 
 export default function AviatorPage() {
@@ -56,7 +78,14 @@ export default function AviatorPage() {
   const [multiplier, setMultiplier] = useState(1);
   const [countdown, setCountdown] = useState(6);
   const [crashPoint, setCrashPoint] = useState<number | null>(null);
-  const [history, setHistory] = useState<number[]>([]);
+  const [history, setHistory] = useState<number[]>(() => {
+    // Pre-populate with 10 recent results
+    const initialHistory: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      initialHistory.push(generateCrashPoint(initialHistory));
+    }
+    return initialHistory;
+  });
   const [players, setPlayers] = useState<any[]>([]);
   const [playerTab, setPlayerTab] = useState<PlayerTab>("all");
   const [bet1Amount, setBet1Amount] = useState(100);
@@ -456,7 +485,7 @@ export default function AviatorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20">
       {/* AVIATOR SUBHEADER */}
-      <div className="flex h-[50px] items-center justify-between px-4">
+      <div className="flex h-[50px] items-center justify-between px-4 pt-2">
         <span className="text-[24px] font-black italic text-[#ff2d55]">Aviator</span>
         <div className="flex items-center gap-[14px]">
           <span className="font-bold text-[#00C853]">{balance.toFixed(2)} KES</span>
@@ -469,9 +498,9 @@ export default function AviatorPage() {
       </div>
 
       {/* MULTIPLIER HISTORY ROW */}
-      <div className="flex h-[36px] items-center gap-[14px] overflow-x-auto px-3 py-1">
+      <div className="flex h-[36px] flex-row-reverse items-center gap-[12px] overflow-x-auto px-3 py-1" style={{ scrollbarWidth: "none" }}>
         {history.slice(0, 15).map((point, i) => (
-          <span key={`${point}-${i}`} className={`shrink-0 text-[15px] font-extrabold ${historyColor(point)}`}>
+          <span key={`${point}-${i}`} className={`shrink-0 whitespace-nowrap text-[14px] font-extrabold ${historyColor(point, i)}`}>
             {point.toFixed(2)}x
           </span>
         ))}
