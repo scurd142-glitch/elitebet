@@ -23,34 +23,38 @@ function historyColor(point: number) {
   return "text-[#ef4444]";
 }
 
-// Multiplier distribution with anti-streak rules
+// Multiplier distribution with anti-streak rules (peak season)
 const generateCrashPoint = (lastResults: number[]) => {
-  // Anti-streak: if last 3 all below 2x, force next above 3x
-  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 2)) {
-    return +(3.0 + Math.random() * 2.0).toFixed(2);
+  // Anti-streak: if last 3 all below 3x, force next between 8x-20x
+  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 3)) {
+    return +(8.0 + Math.random() * 12.0).toFixed(2);
   }
-  // Anti-streak: if last 3 all below 5x, force next above 8x
-  if (lastResults.length >= 3 && lastResults.slice(-3).every(r => r < 5)) {
-    return +(8.0 + Math.random() * 5.0).toFixed(2);
+  // Anti-streak: if last 2 all below 2x, force next between 5x-15x
+  if (lastResults.length >= 2 && lastResults.slice(-2).every(r => r < 2)) {
+    return +(5.0 + Math.random() * 10.0).toFixed(2);
+  }
+  // Never 4 consecutive crashes below 3x
+  if (lastResults.length >= 4 && lastResults.slice(-4).every(r => r < 3)) {
+    return +(10.0 + Math.random() * 15.0).toFixed(2);
   }
 
   const roll = Math.random();
   if (Math.random() < 0.01) return 1.00;
-  if (roll < 0.15) return +(1.00 + Math.random() * 0.5).toFixed(2);
-  if (roll < 0.30) return +(1.50 + Math.random() * 0.5).toFixed(2);
-  if (roll < 0.55) return +(2.00 + Math.random() * 3.0).toFixed(2);
-  if (roll < 0.72) return +(5.00 + Math.random() * 5.0).toFixed(2);
-  if (roll < 0.85) return +(10.0 + Math.random() * 15.0).toFixed(2);
-  if (roll < 0.93) return +(25.0 + Math.random() * 75.0).toFixed(2);
-  if (roll < 0.98) return +(100 + Math.random() * 400).toFixed(2);
-  return +(500 + Math.random() * 500).toFixed(2);
+  if (roll < 0.05) return +(1.00 + Math.random() * 0.5).toFixed(2);
+  if (roll < 0.15) return +(1.50 + Math.random() * 0.5).toFixed(2);
+  if (roll < 0.35) return +(2.00 + Math.random() * 3.0).toFixed(2);
+  if (roll < 0.60) return +(5.00 + Math.random() * 7.0).toFixed(2);
+  if (roll < 0.80) return +(12.0 + Math.random() * 13.0).toFixed(2);
+  if (roll < 0.90) return +(25.0 + Math.random() * 25.0).toFixed(2);
+  if (roll < 0.97) return +(50.0 + Math.random() * 150).toFixed(2);
+  return +(200 + Math.random() * 800).toFixed(2);
 };
 
 export default function AviatorPage() {
   const { user, balance, refreshBalance } = useAuth();
   const [phase, setPhase] = useState<GamePhase>("betting");
   const [multiplier, setMultiplier] = useState(1);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(6);
   const [crashPoint, setCrashPoint] = useState<number | null>(null);
   const [history, setHistory] = useState<number[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
@@ -152,44 +156,52 @@ export default function AviatorPage() {
       ctx.rotate(angle);
       
       // Add glow effect
-      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-      ctx.shadowBlur = 6;
+      ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
+      ctx.shadowBlur = 15;
       
-      // Airplane body (elongated ellipse)
+      // Airplane body (rectangle with rounded corners)
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.ellipse(0, 0, 16, 6, 0, 0, Math.PI * 2);
+      ctx.roundRect(-18, -5, 36, 10, 5);
       ctx.fill();
       
-      // Wings (two triangles on sides)
+      // Left wing (triangle)
       ctx.beginPath();
-      ctx.moveTo(-4, 0);
-      ctx.lineTo(-12, -12);
-      ctx.lineTo(-4, -6);
+      ctx.moveTo(-10, 0);
+      ctx.moveTo(-20, -12);
+      ctx.lineTo(-10, -6);
       ctx.closePath();
       ctx.fill();
       
+      // Right wing (triangle)
       ctx.beginPath();
-      ctx.moveTo(-4, 0);
-      ctx.lineTo(-12, 12);
-      ctx.lineTo(-4, 6);
+      ctx.moveTo(-10, 0);
+      ctx.lineTo(-20, 12);
+      ctx.lineTo(-10, 6);
       ctx.closePath();
       ctx.fill();
       
-      // Tail (small triangle at back)
+      // Tail (triangle)
       ctx.beginPath();
-      ctx.moveTo(-14, 0);
-      ctx.lineTo(-20, -4);
-      ctx.lineTo(-20, 4);
+      ctx.moveTo(-18, 0);
+      ctx.lineTo(-25, -4);
+      ctx.lineTo(-25, 4);
       ctx.closePath();
       ctx.fill();
       
-      // Nose (pointed front)
+      // Nose (pointed triangle)
       ctx.beginPath();
-      ctx.moveTo(16, 0);
-      ctx.lineTo(20, -2);
-      ctx.lineTo(20, 2);
+      ctx.moveTo(18, 0);
+      ctx.lineTo(30, 0);
+      ctx.lineTo(18, -3);
+      ctx.lineTo(18, 3);
       ctx.closePath();
+      ctx.fill();
+      
+      // Cockpit (circle)
+      ctx.fillStyle = "#87CEEB";
+      ctx.beginPath();
+      ctx.arc(5, 0, 4, 0, Math.PI * 2);
       ctx.fill();
       
       ctx.shadowBlur = 0;
@@ -397,17 +409,17 @@ export default function AviatorPage() {
       buttonSubLabel = `${(activeBet.stake * multiplier).toFixed(2)} KES`;
       buttonClass = "bg-[#f5a623] text-[#ffffff]";
       buttonAction = () => { void cashout(panel); };
-    } else if (phase !== "betting" || activeBet) {
-      buttonLabel = phase === "crashed" ? "Next Round" : activeBet ? "Bet Placed" : "Wait";
+    } else if (phase === "crashed") {
+      buttonLabel = "Wait...";
       buttonSubLabel = "";
       buttonClass = "bg-[#2d3448] text-[#6b7280]";
       disabled = true;
     }
 
     return (
-      <div className="flex gap-3">
+      <div className="flex gap-3" style={{ maxHeight: "110px" }}>
         {/* LEFT SIDE - Amount controls */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setAmount(Math.max(10, amount - 50))} className="h-10 w-10 rounded-full bg-[#2d3448] font-bold text-[#ffffff] text-[22px]">−</button>
             <div className="font-mono text-[24px] font-bold text-[#ffffff] min-w-[70px] text-center">{amount}</div>
@@ -425,9 +437,9 @@ export default function AviatorPage() {
 
         {/* RIGHT SIDE - Bet button */}
         <div className="flex-1">
-          <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full h-20 rounded-xl font-bold ${buttonClass} disabled:opacity-60`}>
-            <div className="text-[16px] font-700">{buttonLabel}</div>
-            {buttonSubLabel && <div className="text-[20px] font-900">{buttonSubLabel}</div>}
+          <button type="button" disabled={disabled} onClick={buttonAction} className={`w-full h-[70px] rounded-xl font-bold ${buttonClass} disabled:opacity-60`}>
+            <div className="text-[14px] font-700">{buttonLabel}</div>
+            {buttonSubLabel && <div className="text-[18px] font-900">{buttonSubLabel}</div>}
           </button>
         </div>
 
@@ -442,9 +454,9 @@ export default function AviatorPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20 pt-[56px]">
+    <div className="flex min-h-screen flex-col bg-[#0a0e1a] pb-20">
       {/* AVIATOR SUBHEADER */}
-      <div className="flex h-[48px] items-center justify-between px-4">
+      <div className="flex h-[50px] items-center justify-between px-4">
         <span className="text-[24px] font-black italic text-[#ff2d55]">Aviator</span>
         <div className="flex items-center gap-[14px]">
           <span className="font-bold text-[#00C853]">{balance.toFixed(2)} KES</span>
@@ -457,26 +469,26 @@ export default function AviatorPage() {
       </div>
 
       {/* MULTIPLIER HISTORY ROW */}
-      <div className="flex h-[40px] items-center gap-[18px] overflow-x-auto px-3 py-1">
+      <div className="flex h-[36px] items-center gap-[14px] overflow-x-auto px-3 py-1">
         {history.slice(0, 15).map((point, i) => (
-          <span key={`${point}-${i}`} className={`shrink-0 text-[14px] font-extrabold ${historyColor(point)}`}>
+          <span key={`${point}-${i}`} className={`shrink-0 text-[15px] font-extrabold ${historyColor(point)}`}>
             {point.toFixed(2)}x
           </span>
         ))}
       </div>
 
       {/* LIVE INDICATOR */}
-      <div className="flex h-[28px] items-center justify-between px-3">
+      <div className="flex h-[26px] items-center justify-between px-3">
         <span className="rounded bg-[#00C853] px-2 py-0.5 text-[11px] font-bold text-[#ffffff]">LIVE</span>
         <span className="text-[11px] text-[#6b7280]">{roundId ? `Round ${roundId.slice(-6)}` : "Connecting…"}</span>
       </div>
 
       {/* GAME CANVAS */}
-      <div className="relative" style={{ height: "280px", maxHeight: "280px" }}>
+      <div className="relative" style={{ height: "200px", maxHeight: "200px" }}>
         <canvas ref={canvasRef} className="h-full w-full" />
         {phase === "betting" && countdown > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#0a0014]/40">
-            <span className="text-6xl font-bold text-[#f5a623]">{countdown}</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0014]/40">
+            <span className="text-[24px] font-bold text-[#9aa0a6]">Next round in: {countdown}</span>
           </div>
         )}
       </div>
@@ -498,7 +510,7 @@ export default function AviatorPage() {
       </div>
 
       {/* BOTTOM TABS */}
-      <div className="flex h-[48px] items-center gap-6 border-t border-[#1e2530] bg-[#0d1117] px-4">
+      <div className="flex h-[40px] items-center gap-6 border-t border-[#1e2530] bg-[#0d1117] px-4">
         {(["all", "previous", "top"] as const).map((tab) => (
           <button
             key={tab}

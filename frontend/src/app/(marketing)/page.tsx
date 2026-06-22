@@ -87,36 +87,36 @@ export default function HomePage() {
       </section>
 
       {/* GAME ICONS ROW */}
-      <section className="h-[120px] px-4 py-4">
-        <div className="flex gap-[10px] overflow-x-auto scrollbar-hide">
+      <section className="h-[100px] px-3 py-2">
+        <div className="flex gap-2 overflow-x-auto overflow-y-hidden scrollbar-hide" style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
           {games.map((game) => (
             <Link
               key={game.name}
               href={game.href}
               className="flex-shrink-0 flex flex-col items-center"
+              style={{ scrollSnapAlign: "start" }}
             >
-              <div className="relative h-[90px] w-[90px] rounded-2xl overflow-hidden" style={{ backgroundColor: game.bgColor }}>
+              <div className="relative overflow-hidden" style={{ width: "72px", height: "72px", borderRadius: "14px", backgroundColor: game.bgColor }}>
                 {game.isNew && (
-                  <span className="absolute top-[6px] right-[6px] bg-[#ff0000] px-[5px] py-[2px] text-[9px] font-bold text-[#ffffff] rounded-[4px] z-10">
+                  <span className="absolute top-[4px] right-[4px] bg-[#ff0000] px-[4px] py-[1px] text-[8px] font-bold text-[#ffffff] rounded-[4px] z-10">
                     NEW
                   </span>
                 )}
                 <img
                   src={game.image}
                   alt={game.name}
-                  className="w-full h-full object-cover"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement!.innerHTML = `<span class="text-white text-xs font-bold">${game.name}</span>`;
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
                   }}
                 />
               </div>
-              <span className="mt-1 text-[11px] text-[#ffffff] text-center">{game.name}</span>
+              <span className="mt-1 text-[10px] text-[#ffffff] text-center">{game.name}</span>
             </Link>
           ))}
           {/* More button */}
           <div className="flex-shrink-0 flex flex-col items-center">
-            <div className="h-[90px] w-[90px] rounded-2xl bg-[#1e2530] flex items-center justify-center">
+            <div className="flex items-center justify-center" style={{ width: "72px", height: "72px", borderRadius: "14px", backgroundColor: "#1e2530" }}>
               <span className="text-2xl text-[#6b7280]">...</span>
             </div>
           </div>
@@ -160,11 +160,15 @@ export default function HomePage() {
           {bigWins.map((win, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-[130px] h-[170px] rounded-xl bg-[#1e2530] overflow-hidden"
+              className="flex-shrink-0 flex flex-col items-center rounded-xl bg-[#1e2530]"
+              style={{ width: "130px", height: "160px" }}
             >
-              <img src={win.image} alt={win.game} className="w-full h-[100px] object-cover rounded-t-xl" />
-              <p className="px-2 mt-1 text-[11px] text-[#9aa0a6]">{win.phone}</p>
-              <p className="px-2 text-[13px] font-bold text-[#00C853]">KES {win.amount.toLocaleString()}</p>
+              <div className="w-full h-[100px] flex flex-col items-center justify-center rounded-t-xl" style={{ backgroundColor: "#1e2530" }}>
+                <span className="text-[14px] font-extrabold text-[#ffffff] text-center">{win.game}</span>
+                <span className="text-[20px] mt-1">{win.game === "Blackjack" ? "♠♥♦♣" : win.game === "Hot Pepper" ? "🌶️🌶️🌶️" : win.game === "Drago" ? "🐉🐉🐉" : "⚽⚽⚽"}</span>
+              </div>
+              <p className="mt-2 text-[11px] text-[#9aa0a6]">{win.phone}</p>
+              <p className="text-[13px] font-bold text-[#00C853]">KES {win.amount.toLocaleString()}</p>
             </div>
           ))}
         </div>

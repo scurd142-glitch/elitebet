@@ -23,62 +23,62 @@ export function AppHeader() {
 
   return (
     <header
-      className="fixed left-0 right-0 top-0 z-100 flex h-[56px] items-center justify-between gap-3 bg-[#0d1117] px-4"
+      className="fixed left-0 right-0 top-0 z-[100] flex h-[56px] items-center gap-2 overflow-hidden bg-[#0d1117] px-3"
       style={{ zIndex: 100 }}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        {/* N Logo */}
-        <Link href="/" className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00C853]">
-          <span className="text-lg font-bold text-[#ffffff]">N</span>
-        </Link>
-        <span className="text-[14px] font-semibold text-[#ffffff]">KES {balance.toFixed(2)}</span>
+      {/* N Logo */}
+      <Link href="/" className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#00C853]">
+        <span className="text-lg font-bold text-[#ffffff]">N</span>
+      </Link>
+
+      {/* Balance */}
+      <div className="flex-shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-semibold leading-[1.2] text-[#ffffff]" style={{ minWidth: "fit-content" }}>
+        KES {balance.toFixed(2)}
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Gift icon with badge */}
-        <div className="relative">
-          <Gift className="h-6 w-6 text-[#ffffff]" />
-          <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#00C853]">
-            <span className="text-[8px] font-bold text-[#ffffff]">{giftCount}</span>
-          </div>
+      {/* Gift icon with badge */}
+      <div className="relative flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center">
+        <Gift className="h-[22px] w-[22px] text-[#ffffff]" />
+        <div className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#00C853]">
+          <span className="text-[8px] font-bold text-[#ffffff]">{giftCount}</span>
         </div>
-
-        {/* Deposit button */}
-        <button
-          type="button"
-          onClick={() => (user ? openDeposit() : window.location.assign("/login"))}
-          className="h-9 rounded-lg bg-[#00C853] px-4 text-[14px] font-bold text-[#ffffff]"
-        >
-          Deposit
-        </button>
-
-        {/* Icons */}
-        <Link
-          href="/search"
-          className="flex h-6 w-6 items-center justify-center text-[#ffffff]"
-          aria-label="Search"
-        >
-          <Search className="h-6 w-6" />
-        </Link>
-        <button className="flex h-6 w-6 items-center justify-center text-[#ffffff]" aria-label="Theme">
-          <Sun className="h-6 w-6" />
-        </button>
-        <Link
-          href="/notifications"
-          className="relative flex h-6 w-6 items-center justify-center text-[#ffffff]"
-          aria-label="Notifications"
-        >
-          <Bell className="h-6 w-6" />
-          <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#00C853]" />
-        </Link>
-        <Link
-          href={user ? "/account" : "/login"}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#00C853] text-xs font-bold text-[#ffffff]"
-          aria-label="Account"
-        >
-          {user ? getInitials(user.fullName) : <User className="h-4 w-4" />}
-        </Link>
       </div>
+
+      {/* Deposit button */}
+      <button
+        type="button"
+        onClick={() => (user ? openDeposit() : window.location.assign("/login"))}
+        className="flex h-[34px] flex-shrink-0 rounded-lg bg-[#00C853] px-3 text-[13px] font-bold text-[#ffffff]"
+      >
+        Deposit
+      </button>
+
+      {/* Icons */}
+      <Link
+        href="/search"
+        className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center text-[#ffffff]"
+        aria-label="Search"
+      >
+        <Search className="h-[22px] w-[22px]" />
+      </Link>
+      <button className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center text-[#ffffff]" aria-label="Theme">
+        <Sun className="h-[22px] w-[22px]" />
+      </button>
+      <Link
+        href="/notifications"
+        className="relative flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center text-[#ffffff]"
+        aria-label="Notifications"
+      >
+        <Bell className="h-[22px] w-[22px]" />
+        <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#00C853]" />
+      </Link>
+      <Link
+        href={user ? "/account" : "/login"}
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#00C853] text-xs font-bold text-[#ffffff]"
+        aria-label="Account"
+      >
+        {user ? getInitials(user.fullName) : <User className="h-4 w-4" />}
+      </Link>
     </header>
   );
 }
